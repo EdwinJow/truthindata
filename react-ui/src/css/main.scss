@@ -1,0 +1,43 @@
+@import 'variables.scss';
+
+body,html,#root,#main-container{
+    height: 100%;
+}
+
+body,html{
+    overflow-y: hidden;
+}
+
+#root{
+    #main-container{
+        display: flex;
+        flex-flow: column;
+        #header {
+            background-color: $primary-color-dark;
+            height: auto;
+            padding: 10px;
+            color: $primary-color-text;
+            h2{
+                margin-top: 10px;
+                margin-bottom: 10px;
+                color: $accent-color;
+            }
+        }
+        #flex-container{
+            display: flex;
+            height: 100%;
+            #main-sidebar{
+                height: 100%;
+            }
+            #content-container{
+                padding-left: 2em;
+                overflow: auto;
+                flex: 2;
+            }
+        }
+       
+        #main{
+            display: inline-block;
+        }
+    }
+}

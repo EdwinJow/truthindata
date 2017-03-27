@@ -1,0 +1,44 @@
+body, html, #root, #main-container {
+  height: 100%;
+}
+
+body, html {
+  overflow-y: hidden;
+}
+
+#root #main-container {
+  display: flex;
+  flex-flow: column;
+}
+
+#root #main-container #header {
+  background-color: #455A64;
+  height: auto;
+  padding: 10px;
+  color: #FFFFFF;
+}
+
+#root #main-container #header h2 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #FF9800;
+}
+
+#root #main-container #flex-container {
+  display: flex;
+  height: 100%;
+}
+
+#root #main-container #flex-container #main-sidebar {
+  height: 100%;
+}
+
+#root #main-container #flex-container #content-container {
+  padding-left: 2em;
+  overflow: auto;
+  flex: 2;
+}
+
+#root #main-container #main {
+  display: inline-block;
+}
