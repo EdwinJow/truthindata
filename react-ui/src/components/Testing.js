@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Keys from '../apikeys/Keys'
 import axios from 'axios';
 
 class Testing extends Component {
@@ -11,7 +10,7 @@ class Testing extends Component {
     }
 
     componentDidMount() {
-        axios.get(`https://api.census.gov/data/2016/pep/population?get=POP,GEONAME&for=county:*&key=` + Keys.census)
+        axios.get(`https://api.census.gov/data/2016/pep/population?get=POP,GEONAME&for=county:*&key=` + process.env.CENSUS_API)
             .then(res => {
                 const data = res.data;
                 let dataLen = data.length;

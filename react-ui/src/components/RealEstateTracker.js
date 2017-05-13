@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
+import runtimeEnv from '@mars/heroku-js-runtime-env';
 
-class Admin extends Component {
+class RealEstateTracker extends Component {
     componentDidMount(){
+        const env = runtimeEnv();
+        console.log(env)
     }
     render() {
         return (
@@ -12,4 +15,4 @@ class Admin extends Component {
     }
 }
 
-export default Admin;
+export default RealEstateTracker;

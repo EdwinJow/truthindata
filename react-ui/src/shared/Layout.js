@@ -18,27 +18,6 @@ class Layout extends Component {
         };
     }
 
-    //   componentDidMount() {
-    //     fetch('/api')
-    //       .then(response => {
-    //         if (!response.ok) {
-    //           throw new Error(`status ${response.status}`);
-    //         }
-    //         return response.json();
-    //       })
-    //       .then(json => {
-    //         this.setState({
-    //           message: json.message,
-    //           fetching: false
-    //         });
-    //       }).catch(e => {
-    //         this.setState({
-    //           message: `API call failed: ${e}`,
-    //           fetching: false
-    //         });
-    //       })
-    //   }
-
     render() {
         return (
             <MuiThemeProvider>
