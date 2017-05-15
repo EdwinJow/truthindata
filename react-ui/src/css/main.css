@@ -1,9 +1,13 @@
-body, html, #root, #main-container {
+body, html, #root, #main-container, #content-container {
   height: 100%;
 }
 
 body, html {
   overflow-y: hidden;
+}
+
+.height-100 {
+  height: 100%;
 }
 
 #root #main-container {

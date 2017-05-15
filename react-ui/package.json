@@ -9,8 +9,10 @@
   "dependencies": {
     "@mars/heroku-js-runtime-env": "^3.0.0",
     "axios": "^0.15.3",
+    "google-map-react": "^0.24.0",
     "material-ui": "^0.17.1",
     "mongodb": "^2.2.25",
+    "prop-types": "^15.5.10",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-flexbox-grid": "^1.0.2",

@@ -16,8 +16,18 @@ app.get('/api', function (req, res) {
 });
 
 app.get('/test', function(req, res){
-    MongoClient.connect(process.env.MONGODB_URI, function(err, dbs){
+    MongoClient.connect(process.env.MONGODB_URI, function(err, db){
         if(err) throw err;
+        var states = db.collection('States');
+
+        states.find({ State: "ME" }, function (err, cursor) {
+            cursor.each(function (err, item) {
+                console.log(item);
+            });
+
+            db.close();
+        });
+
         res.send('{"message": "test"}')
     })
 });

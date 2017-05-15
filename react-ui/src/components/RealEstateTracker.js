@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import SimpleMap from './GoogleMapsBasic';
 
 class RealEstateTracker extends Component {
     componentDidMount(){
@@ -6,8 +7,8 @@ class RealEstateTracker extends Component {
     }
     render() {
         return (
-            <div>
-                <div></div>
+            <div className="height-100">
+                <SimpleMap/>
             </div>
         );
     }
