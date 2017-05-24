@@ -9,26 +9,18 @@ const PORT = process.env.PORT || 5000;
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
 
-// Answer API requests.
-app.get('/api', function (req, res) {
-    res.set('Content-Type', 'application/json');
-    res.send('{"message":"Hello from the custom server!"}');
-});
-
 app.get('/test', function(req, res){
     MongoClient.connect(process.env.MONGODB_URI, function(err, db){
         if(err) throw err;
         var states = db.collection('States');
 
-        states.find({ State: "ME" }, function (err, cursor) {
-            cursor.each(function (err, item) {
-                console.log(item);
-            });
+        states.find({ State: req.query.State }).toArray(function (err, docs) {
+            if(err) throw err;
+            db.close();    
 
-            db.close();
+            res.set('Content-Type', 'application/json')
+            res.send(JSON.stringify(docs));
         });
-
-        res.send('{"message": "test"}')
     })
 });
 

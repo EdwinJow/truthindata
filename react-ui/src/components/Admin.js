@@ -2,16 +2,36 @@ import React, { Component } from 'react';
 import axios from 'axios';
 
 class Admin extends Component {
-    componentDidMount(){
-        axios.get('/test', function(err, response){
-            if(err) throw err;
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            polylines: []
+        };
+    }
+    
+    componentDidMount() {
+        axios.get('/test', {
+            params: {
+                State: "NJ"
+            }
+        })
+        .then(function (response) {
             console.log(response);
+            var polylines = response.data.map(obj => obj.EncodedPolyline);
+            console.log(this);
+
+            this.setState({polylines});
+        }.bind(this))
+        .catch(function (error) {
+            console.log(error);
         });
     }
+
     render() {
         return (
             <div>
-                <div></div>
+                {this.state.polylines};
             </div>
         );
     }
