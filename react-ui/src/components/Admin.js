@@ -11,18 +11,16 @@ class Admin extends Component {
     }
     
     componentDidMount() {
-        axios.get('/test', {
+        axios.get('/states', {
             params: {
                 State: "NJ"
             }
         })
         .then(function (response) {
-            console.log(response);
             var polylines = response.data.map(obj => obj.EncodedPolyline);
-            console.log(this);
-
             this.setState({polylines});
-        }.bind(this))
+        }
+        .bind(this))
         .catch(function (error) {
             console.log(error);
         });

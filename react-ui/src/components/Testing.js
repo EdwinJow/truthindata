@@ -10,20 +10,10 @@ class Testing extends Component {
     }
 
     componentDidMount() {
-        axios.get(`https://api.census.gov/data/2016/pep/population?get=POP,GEONAME&for=county:*&key=` + process.env.CENSUS_API)
+        axios.get('/census')
             .then(res => {
-                const data = res.data;
-                let dataLen = data.length;
-                let arr = [];
-
-                for(let i = 0; i < dataLen; i++){
-                    if(data[i][1].includes('Alabama')){
-                        var county = data[i];
-                        arr.push(<li>{county}</li>)
-                    }
-                } 
-
-                this.setState({ pop: arr });
+                debugger;
+                this.setState({ pop: res.data });
             });
     }
 
