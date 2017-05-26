@@ -6,7 +6,7 @@ class RealEstateTracker extends Component {
         super(props);
         this.state = {
             map: null,
-            maps: null,
+            gmaps: null,
             mapLoaded: null
         };
     }
@@ -29,11 +29,11 @@ class RealEstateTracker extends Component {
                     bootstrapURLKeys={{
                         key: 'AIzaSyCmNcnbIz0a7PJ-FxUWohaX9rMq370-l6o&libraries=geometry'
                     }}
-                    onGoogleApiLoaded={({ map, maps }) => { this.setState({ map: map, maps: maps, mapLoaded: true }).bind(this) }}
+                    onGoogleApiLoaded={({ map, maps }) => { this.setState({ map: map, gmaps: maps, mapLoaded: true }) }}
                     yesIWantToUseGoogleMapApiInternals
                 >
                 </GoogleMap>
-                {this.state.mapLoaded && <Polyline map={this.state.map} maps={this.state.maps} />}
+                {this.state.mapLoaded && <Polyline map={this.state.map} gmaps={this.state.gmaps} />}
             </div>
         );
     }

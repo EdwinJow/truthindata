@@ -17,21 +17,21 @@ class Polyline extends PureComponent {
     }
 
     render() {
-        debugger;
-        const Polyline = this.props.maps.Polyline
 
-        const renderedPolyline = this.renderPolyline()
-        const paths = { path: this.getPaths() }
+        // const Polyline = this.props.maps.Polyline
 
-        this.line = new Polyline(Object.assign({}, renderedPolyline, paths))
+        // const renderedPolyline = this.renderPolyline()
+        // const paths = { path: this.getPaths() }
 
-        this.line.setMap(this.props.map)
+        // this.line = new Polyline(Object.assign({}, renderedPolyline, paths))
 
-        return null
+        // this.line.setMap(this.props.map)
+        console.log(this.props);
+        return null;
     }
 
     renderPolyline() {
-        return;
+        return null;
     }
 }
 
