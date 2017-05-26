@@ -9,12 +9,12 @@ class Polyline extends PureComponent {
         this.line.setMap(null)
     }
 
-    // getPaths() {
-    //     const polylines = this.props.polylines;
-    //     return [
-    //         polylines
-    //     ];
-    // }
+    getPaths() {
+        const polylines = this.props.polylines;
+        return [
+            polylines
+        ];
+    }
 
     render() {
         debugger;
