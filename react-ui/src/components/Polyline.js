@@ -31,7 +31,7 @@ class Polyline extends PureComponent {
     }
 
     renderPolyline() {
-        throw new Error('Implement renderPolyline method')
+        return;
     }
 }
 
