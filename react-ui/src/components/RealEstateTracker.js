@@ -16,16 +16,20 @@ const SimpleMapExampleGoogleMap = withGoogleMap(props => (
             defaultZoom={7}
             defaultCenter={{ lat: 33.453566, lng: -112.069103 }}
         >
-        <Polygon
-            /*draggable
-            editable*/
-            strokeColor="#13a168"
-            strokeOpacity={0.8}
-            strokeWeight={2}
-            fillColor="#13a168"
-            fillOpacity={2}
-            paths={props.paths}
-        />
+        if(props){}
+        {props.polys.map((poly, index) => (
+            <Polygon
+                key={poly.id}
+                /*draggable
+                editable*/
+                strokeColor="#13a168"
+                strokeOpacity={0.8}
+                strokeWeight={2}
+                fillColor="#13a168"
+                fillOpacity={2}
+                paths={poly.paths}
+            />
+        ))}
     </GoogleMap>
 ));
 
@@ -33,21 +37,24 @@ export default class SimpleMapExample extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            paths: null
+            polys: [{ paths: [], id: 0 }]
         };
     }
 
     componentDidMount(){
         axios.get('/states', {
             params: {
-                State: "AZ"
+                State: null
             }
         })
         .then(function (response) {
             const encoder = window.google.maps.geometry.encoding;
-            var polylines = response.data.map(obj => obj.EncodedPolyline);
-            var paths = polylines.map(obj => encoder.decodePath(obj));
-            this.setState({paths: paths});
+            var polys =  response.data.map(obj => (
+                {
+                    paths: encoder.decodePath(obj.EncodedPolyline),
+                    id: obj._id
+                }));
+            this.setState({polys: polys});
         }
         .bind(this))
         .catch(function (error) {
@@ -64,7 +71,7 @@ export default class SimpleMapExample extends Component {
                     mapElement={
                         <div style={{ height: `100%` }} />
                     }
-                    paths={this.state.paths}
+                    polys={this.state.polys}
                 />
             </div>
         );
