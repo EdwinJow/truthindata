@@ -1,36 +1,43 @@
 import { PureComponent } from 'react';
 
 class Polyline extends PureComponent {
-    componentWillUpdate() {
-        this.line.setMap(null)
+    // componentWillUpdate() {
+    //     this.line.setMap(null)
+    // }
+
+    // componentWillUnmount() {
+    //     this.line.setMap(null)
+    // }
+
+    createPolygon(polyConfig){
+        const Polygon = this.props.gmaps.Polygon;
+        let base = new Polygon();
+        let polygon = Object.assign(base, polyConfig);
+
+        polygon.setMap(this.props.map)
+        debugger;
     }
 
-    componentWillUnmount() {
-        this.line.setMap(null)
-    }
+    decodePolylines(){
+        let polylines = this.props.polylines;
+        let len = polylines.length;
+        const encoder = this.props.gmaps.geometry.encoding;
 
-    getPaths() {
-        const polylines = this.props.polylines;
-        return [
-            polylines
-        ];
+        for(var i = 0; i < len; i++){
+            let config = {
+                paths: encoder.decodePath(polylines[i]),
+                strokeColor: 'black',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: 'black',
+                fillOpacity: 1
+            }
+            this.createPolygon(config);
+        }
     }
 
     render() {
-
-        // const Polyline = this.props.maps.Polyline
-
-        // const renderedPolyline = this.renderPolyline()
-        // const paths = { path: this.getPaths() }
-
-        // this.line = new Polyline(Object.assign({}, renderedPolyline, paths))
-
-        // this.line.setMap(this.props.map)
-        console.log(this.props);
-        return null;
-    }
-
-    renderPolyline() {
+        this.decodePolylines();
         return null;
     }
 }
