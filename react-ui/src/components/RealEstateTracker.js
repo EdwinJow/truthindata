@@ -10,13 +10,15 @@ import {
 } from "react-google-maps";
 
 import axios from 'axios';
+import Paper from 'material-ui/Paper';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
 
 const SimpleMapExampleGoogleMap = withGoogleMap(props => (
         <GoogleMap
             defaultZoom={7}
             defaultCenter={{ lat: 33.453566, lng: -112.069103 }}
         >
-        if(props){}
         {props.polys.map((poly, index) => (
             <Polygon
                 key={poly.id}
@@ -24,7 +26,7 @@ const SimpleMapExampleGoogleMap = withGoogleMap(props => (
                 editable*/
                 strokeColor="#13a168"
                 strokeOpacity={0.8}
-                strokeWeight={2}
+                strokeWeight={1}
                 fillColor="#13a168"
                 fillOpacity={2}
                 paths={poly.paths}
@@ -37,12 +39,21 @@ export default class SimpleMapExample extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            polys: [{ paths: [], id: 0 }]
+            polys: [{ paths: [], id: 0 }],
+            gmap: null
         };
+
+        this.bindGeoTypes= this.bindGeoTypes.bind(this);
     }
 
-    componentDidMount(){
-        axios.get('/states', {
+    handleMapMounted(map) {
+        this._map = map;
+    }
+
+    bindGeoTypes(event, menuItem,index){
+        let type = menuItem.props.primaryText.toLowerCase();
+        
+        axios.get('/' + type, {
             params: {
                 State: null
             }
@@ -61,6 +72,7 @@ export default class SimpleMapExample extends Component {
             console.log(error);
         });
     }
+
     render() {
         return (
             <div className="height-100">
@@ -72,7 +84,14 @@ export default class SimpleMapExample extends Component {
                         <div style={{ height: `100%` }} />
                     }
                     polys={this.state.polys}
+                    onMapMounted={this.handleMapMounted}
                 />
+                <Paper style={{display: 'inline-block', margin: '16px 32px 16px 0', position: 'absolute', top: '8em', left: '9.5em'}}>
+                    <Menu onItemTouchTap={this.bindGeoTypes}>
+                        <MenuItem primaryText="Counties" />
+                        <MenuItem primaryText="States" />
+                    </Menu>
+                </Paper>
             </div>
         );
     }

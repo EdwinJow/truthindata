@@ -34,14 +34,11 @@ app.get('/states', function(req, res){
 });
 
 app.get('/counties', function(req, res){
-
-    debugger;
-
     MongoClient.connect(process.env.MONGODB_URI, function(err, db){
         if(err) throw err;
         var states = db.collection('Counties');
 
-        states.find({ State: req.query.State }).toArray(function (err, docs) {
+        states.find({}).toArray(function (err, docs) {
             if(err) throw err;
             db.close();    
 
