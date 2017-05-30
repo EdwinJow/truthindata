@@ -13,6 +13,7 @@ import axios from 'axios';
 import Paper from 'material-ui/Paper';
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
+import {cyan300, orange300} from 'material-ui/styles/colors';
 
 const SimpleMapExampleGoogleMap = withGoogleMap(props => (
         <GoogleMap
@@ -24,12 +25,14 @@ const SimpleMapExampleGoogleMap = withGoogleMap(props => (
                 key={poly.id}
                 /*draggable
                 editable*/
-                strokeColor="#13a168"
                 strokeOpacity={0.8}
-                strokeWeight={1}
-                fillColor="#13a168"
+                strokeWeight={.5}
                 fillOpacity={2}
                 paths={poly.paths}
+                options={{
+                    fillColor: poly.fillColor ? poly.fillColor : '#13a168',
+                    strokeColor: poly.strokeColor ? poly.strokeColor : '#13a168'
+                }}
             />
         ))}
     </GoogleMap>
@@ -51,8 +54,8 @@ export default class SimpleMapExample extends Component {
     }
 
     bindGeoTypes(event, menuItem,index){
-        let type = menuItem.props.primaryText.toLowerCase();
-        
+        var type = menuItem.props.primaryText.toLowerCase();
+
         axios.get('/' + type, {
             params: {
                 State: null
@@ -60,10 +63,15 @@ export default class SimpleMapExample extends Component {
         })
         .then(function (response) {
             const encoder = window.google.maps.geometry.encoding;
+            let color;
+
+            type === 'counties' ? color = orange300 : color = cyan300;
+
             var polys =  response.data.map(obj => (
                 {
                     paths: encoder.decodePath(obj.EncodedPolyline),
-                    id: obj._id
+                    id: obj._id,
+                    fillColor: color
                 }));
             this.setState({polys: polys});
         }
