@@ -16,7 +16,7 @@ app.get('/states', function(req, res){
         var states = db.collection('States');
         var request = {};
 
-        if(req.State)
+        if(req.query.State)
         {
             request = {
                 State: req.query.State
@@ -37,8 +37,39 @@ app.get('/counties', function(req, res){
     MongoClient.connect(process.env.MONGODB_URI, function(err, db){
         if(err) throw err;
         var states = db.collection('Counties');
+        var request = {};
 
-        states.find({}).toArray(function (err, docs) {
+        if(req.query.State)
+        {
+            request = {
+                ContainingState: req.query.State
+            }
+        }
+
+        states.find(request).toArray(function (err, docs) {
+            if(err) throw err;
+            db.close();    
+
+            res.set('Content-Type', 'application/json');
+            res.send(JSON.stringify(docs));
+        });
+    })
+});
+
+app.get('/zips', function(req, res){
+    MongoClient.connect(process.env.MONGODB_URI, function(err, db){
+        if(err) throw err;
+        var states = db.collection('Zips');
+        var request = {};
+
+        if(req.query.State)
+        {
+            request = {
+                ContainingState: req.query.State
+            }
+        }
+
+        states.find(request).toArray(function (err, docs) {
             if(err) throw err;
             db.close();    
 
