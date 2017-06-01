@@ -35,14 +35,11 @@ const SimpleMapExampleGoogleMap = withGoogleMap(props => (
                 strokeWeight={.5}
                 fillOpacity={2}
                 paths={poly.paths}
-                onClick={props.onPolyClick}
+                onClick={props.parentComponent.handlePolyClick}
                 options={{
                     fillColor: poly.fillColor ? poly.fillColor : '#13a168',
                     strokeColor: poly.strokeColor ? poly.strokeColor : '#13a168',
                     label: poly.label,
-                    handleModalOpen: props.handleModalOpen,
-                    getGeoShapes: props.getGeoShapes,
-                    getZips: props.getZips,
                     type: poly.type,
                     state: poly.state,
                     parentComponent: props.parentComponent
@@ -59,12 +56,16 @@ const SimpleMapExampleGoogleMap = withGoogleMap(props => (
                     strokeColor: 'black',
                     strokeWidth: 1,
                 }}
+                onClick={props.parentComponent.handleMarkerClick}
+                options={{
+                    parentComponent: props.parentComponent
+                }}
             />
         ))}
     </GoogleMap>
 ));
 
-export default class SimpleMapExample extends Component {
+export default class RealEstateTracker extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -73,12 +74,27 @@ export default class SimpleMapExample extends Component {
             modalOpen: false,
             modalTitle: null,
             markers: [{ centroid: null, key: 0}],
-            geotype: 1
+            geotype: 1,
+            dates: [],
+            startDate: null,
+            endDate: null
         };
 
         this.bindGeoTypes= this.bindGeoTypes.bind(this);
         this.getGeoShapes = this.getGeoShapes.bind(this);
         this.getZips = this.getZips.bind(this);
+    }
+
+    componentDidMount() {
+        axios.get('/dates/real-estate-tracker')
+            .then(function (response) {
+                var dates = response.data.sort();
+                this.setState({ dates: dates });
+            }
+            .bind(this))
+            .catch(function (error) {
+                console.log(error);
+            });
     }
 
     getZips(state){
@@ -87,23 +103,24 @@ export default class SimpleMapExample extends Component {
                 State: state
             }
         })
-        .then(function (response) {
-            var zips =  response.data.map(obj => (
-                {
-                    position: {
-                        lat: obj.Lat,
-                        lng: obj.Lng
-                    },
-                    key: obj.Zip,
-                    label: obj.Zip.toString(),
-                    state: obj.ContainingState
-                }));
-            this.setState({markers: zips});
-        }
-        .bind(this))
-        .catch(function (error) {
-            console.log(error);
-        });
+            .then(function (response) {
+                debugger;
+                var zips =  response.data.map(obj => (
+                    {
+                        position: {
+                            lat: obj.Lat,
+                            lng: obj.Lng
+                        },
+                        key: obj.Zip,
+                        label: obj.Zip.toString(),
+                        state: obj.ContainingState
+                    }));
+                this.setState({markers: zips});
+            }
+            .bind(this))
+            .catch(function (error) {
+                console.log(error);
+            });
     }
 
     getGeoShapes(type, req){
@@ -112,27 +129,27 @@ export default class SimpleMapExample extends Component {
                 State: req
             }
         })
-        .then(function (response) {
-            const encoder = window.google.maps.geometry.encoding;
-            let color;
+            .then(function (response) {
+                const encoder = window.google.maps.geometry.encoding;
+                let color;
 
-            type === 'counties' ? color = orange300 : color = cyan300;
+                type === 'counties' ? color = orange300 : color = cyan300;
 
-            var polys =  response.data.map(obj => (
-                {
-                    paths: encoder.decodePath(obj.EncodedPolyline),
-                    id: obj._id,
-                    fillColor: color,
-                    label: obj.State ? obj.State : obj.GeoName,
-                    state: obj.State ? obj.State : obj.ContainingState,
-                    type: type 
-                }));
-            this.setState({polys: polys});
-        }
-        .bind(this))
-        .catch(function (error) {
-            console.log(error);
-        });
+                var polys =  response.data.map(obj => (
+                    {
+                        paths: encoder.decodePath(obj.EncodedPolyline),
+                        id: obj._id,
+                        fillColor: color,
+                        label: obj.State ? obj.State : obj.GeoName,
+                        state: obj.State ? obj.State : obj.ContainingState,
+                        type: type 
+                    }));
+                this.setState({polys: polys});
+            }
+            .bind(this))
+            .catch(function (error) {
+                console.log(error);
+            });
     }
 
     handleMapMounted(map) {
@@ -143,18 +160,24 @@ export default class SimpleMapExample extends Component {
         debugger;
         console.log(this.label);
         let isState = this.type === 'states';
+        let _this = this.parentComponent;
 
-        if(this.parentComponent.state.geotype === 1 && isState){
-            this.getGeoShapes('counties', this.label);
+        if(_this.state.geotype === 1 && isState){
+            _this.getGeoShapes('counties', this.label);
                 return;
         }
 
-        if(this.parentComponent.state.geotype === 2 && isState){
-            this.getZips(this.label);
+        if(_this.state.geotype === 2 && isState){
+            _this.getZips(this.label);
             return;
         }
         
-        this.handleModalOpen(this.label)
+        _this.handleModalOpen(this.label);
+    }
+
+    handleMarkerClick(e){
+        let _this = this.parentComponent;
+        _this.handleModalOpen(this.label);
     }
 
     handleModalOpen = (label) => {
@@ -164,6 +187,11 @@ export default class SimpleMapExample extends Component {
     handleModalClose = () => {
         this.setState({ modalOpen: false });
     };
+
+    handleDateChange = (event, index, value) =>{
+        console.log(this);
+        this.setState({ startDate: value })
+    }
 
     bindGeoTypes(event, menuItem,index){
         var type = menuItem.props.primaryText.toLowerCase();
@@ -189,11 +217,6 @@ export default class SimpleMapExample extends Component {
                     mapElement={
                         <div style={{ height: `100%` }} />
                     }
-                    onMapMounted={this.handleMapMounted}
-                    onPolyClick={this.handlePolyClick}
-                    handleModalOpen={this.handleModalOpen}
-                    getZips={this.getZips}
-                    getGeoShapes={this.getGeoShapes}
                     polys={this.state.polys}
                     markers={this.state.markers}
                     parentComponent={this}             
@@ -215,6 +238,11 @@ export default class SimpleMapExample extends Component {
                 <DropDownMenu style={{display: 'inline-block', margin: '16px 32px 16px 0', position: 'absolute', top: '8em', left: '9.5em'}} value={this.state.geotype} onChange={this.handleGeoTypeChange}>
                     <MenuItem value={1} primaryText="Sold For Gain" />
                     <MenuItem value={2} primaryText="Price To Rent" />
+                </DropDownMenu>
+                <DropDownMenu style={{display: 'inline-block', margin: '16px 32px 16px 0', position: 'absolute', top: '8em', left: '9.5em'}} value={this.state.startDate} onChange={this.handleDateChange}>
+                    {this.state.dates.map((date, index) =>(
+                        <MenuItem value={date.Date} primaryText={date.Date} key={index}/>
+                    ))}
                 </DropDownMenu>
             </div>
         );

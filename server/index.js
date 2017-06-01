@@ -3,80 +3,25 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const axios = require('axios')
-
-var fs = require('fs');
-var MongoClient = require('mongodb').MongoClient
+const MongoClient = require('mongodb').MongoClient
 
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
 
 app.get('/states', function(req, res){
-    MongoClient.connect(process.env.MONGODB_URI, function(err, db){
-        if(err) throw err;
-        var states = db.collection('States');
-        var request = {};
-
-        if(req.query.State)
-        {
-            request = {
-                State: req.query.State
-            }
-        }
-
-        states.find(request).toArray(function (err, docs) {
-            if(err) throw err;
-            db.close();    
-            
-            res.set('Content-Type', 'application/json');
-            res.send(JSON.stringify(docs));
-        });
-    })
+   getCollectionDocuments('States', req, res);
 });
 
 app.get('/counties', function(req, res){
-    MongoClient.connect(process.env.MONGODB_URI, function(err, db){
-        if(err) throw err;
-        var states = db.collection('Counties');
-        var request = {};
-
-        if(req.query.State)
-        {
-            request = {
-                ContainingState: req.query.State
-            }
-        }
-
-        states.find(request).toArray(function (err, docs) {
-            if(err) throw err;
-            db.close();    
-
-            res.set('Content-Type', 'application/json');
-            res.send(JSON.stringify(docs));
-        });
-    })
+    getCollectionDocuments('Counties', req, res);
 });
 
 app.get('/zips', function(req, res){
-    MongoClient.connect(process.env.MONGODB_URI, function(err, db){
-        if(err) throw err;
-        var states = db.collection('Zips');
-        var request = {};
+    getCollectionDocuments('PriceToRentZip', req, res);
+});
 
-        if(req.query.State)
-        {
-            request = {
-                ContainingState: req.query.State
-            }
-        }
-
-        states.find(request).toArray(function (err, docs) {
-            if(err) throw err;
-            db.close();    
-
-            res.set('Content-Type', 'application/json');
-            res.send(JSON.stringify(docs));
-        });
-    })
+app.get('/dates/real-estate-tracker', function(req, res){
+   getCollectionDocuments('DateSelector', req, res);
 });
 
 app.get('/census', function(req, res){
@@ -101,6 +46,28 @@ app.get('/census', function(req, res){
         })
     
 });
+
+function getCollectionDocuments(collectionName, req, res){
+    MongoClient.connect(process.env.MONGODB_URI, function(err, db){
+        if(err) throw err;
+        var collection = db.collection(collectionName);
+        var request = {};
+
+        if(req.query.State)
+        {
+            request = {
+                ContainingState: req.query.State
+            }
+        }
+
+        collection.find(request).toArray(function (err, docs) {
+            if(err) throw err;
+            db.close();    
+            res.set('Content-Type', 'application/json');
+            res.send(JSON.stringify(docs));
+        });
+    })
+}
 
 // All remaining requests return the React app, so it can handle routing.
 app.get('*', function (request, response) {
