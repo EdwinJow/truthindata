@@ -38,7 +38,6 @@ body, html {
 }
 
 #root #main-container #flex-container #content-container {
-  padding-left: 2em;
   overflow: auto;
   flex: 2;
 }
