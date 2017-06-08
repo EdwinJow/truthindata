@@ -11,14 +11,17 @@ import {
 } from "react-google-maps";
 
 import axios from 'axios';
+
 import DropDownMenu from 'material-ui/DropDownMenu'
 import Paper from 'material-ui/Paper';
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import {cyan300, orange300} from 'material-ui/styles/colors';
-import mapStyles from './googlemaps/styles/grayscale.json'
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
+
+import mapStyles from './googlemaps/styles/grayscale.json'
+import '../css/real-estate-tracker.min.css'
 
 const SimpleMapExampleGoogleMap = withGoogleMap(props => (
         <GoogleMap
@@ -74,8 +77,8 @@ export default class RealEstateTracker extends Component {
             markers: [{ centroid: null, key: 0}],
             geotype: 1,
             dates: [],
-            startDate: null,
-            endDate: null
+            startDate: '2010-10',
+            endDate: '2010-10'
         };
 
         this.bindGeoTypes= this.bindGeoTypes.bind(this);
@@ -98,7 +101,9 @@ export default class RealEstateTracker extends Component {
     getZips(state){
         axios.get('/Zips', {
             params: {
-                State: state
+                State: state,
+                StartDate: this.state.startDate,
+                EndDate: this.state.endDate
             }
         })
             .then(function (response) {
@@ -124,7 +129,7 @@ export default class RealEstateTracker extends Component {
     getGeoShapes(type, req){
         axios.get('/' + type, {
             params: {
-                State: req
+                State: req.type
             }
         })
             .then(function (response) {
@@ -140,7 +145,7 @@ export default class RealEstateTracker extends Component {
                         fillColor: color,
                         label: obj.State ? obj.State : obj.GeoName,
                         state: obj.State ? obj.State : obj.ContainingState,
-                        type: type 
+                        type: type
                     }));
                 this.setState({polys: polys});
             }
@@ -191,12 +196,18 @@ export default class RealEstateTracker extends Component {
     }
 
     handleEndDateChange = (event, index, value) =>{
+        debugger;
         this.setState({ endDate: value })
     }
 
     bindGeoTypes(event, menuItem,index){
-        var type = menuItem.props.primaryText;
-        this.getGeoShapes(type)       
+        let type = menuItem.props.primaryText;
+        let req = {
+            type: type,
+            startDate: this.state.startDate,
+            endDate: this.state.endDate
+        }
+        this.getGeoShapes(req)       
     }
 
     handleGeoTypeChange = (event, index, value) => this.setState({geotype: value});
@@ -230,35 +241,34 @@ export default class RealEstateTracker extends Component {
                     onRequestClose={this.handleModalClose}
                 >
                 </Dialog>
-                <Paper style={{ height: '100%', width: '500px', opacity: '.8', backgroundColor: 'black', padding: '10px 20px', position: 'fixed', top: '68px' }} zDepth={1}>
+                <Paper className='side-menu' style={{ height: '100%', width: '500px', backgroundColor: 'rgba(0,0,0,.8)', padding: '10px 20px', position: 'fixed', top: '68px' }} zDepth={1}>
                     <Paper style={{ display: 'inline-block' }}>
                         <Menu onItemTouchTap={this.bindGeoTypes}>
-                            {/*<MenuItem primaryText="Counties" />*/}
                             <MenuItem primaryText="states" key="states" />
                         </Menu>
                     </Paper>
-                    <Paper style={{ display: 'block' }}>
+                    <Paper className="metric-container" style={{ display: 'block' }}>
                         <h3>Metric Type</h3>
-                        <DropDownMenu style={{ display: 'inline-block', margin: '16px 32px 16px 0'}} value={this.state.geotype} onChange={this.handleGeoTypeChange}>
+                        <DropDownMenu style={{ display: 'block', width: '100%'}} value={this.state.geotype} onChange={this.handleGeoTypeChange}>
                             <MenuItem value={1} primaryText="Sold For Gain" />
                             <MenuItem value={2} primaryText="Price To Rent" />
                         </DropDownMenu>
-                    </Paper>
-                    <Paper style={{ display: 'block' }}>
-                        <h3>Start Date</h3>
-                        <DropDownMenu style={{ display: 'inline-block', margin: '16px 32px 16px 0'}} value={this.state.startDate} onChange={this.handleStartDateChange}>
-                            {this.state.dates.map((date, index) => (
-                                <MenuItem value={date.Date} primaryText={date.Date} key={index} />
-                            ))}
-                        </DropDownMenu>
-                    </Paper>
-                    <Paper style={{ display: 'block' }}>
-                        <h3>End Date</h3>
-                        <DropDownMenu style={{ display: 'inline-block', margin: '16px 32px 16px 0' }} value={this.state.endDate} onChange={this.handleEndDateChange}>
-                            {this.state.dates.map((date, index) => (
-                                <MenuItem value={date.Date} primaryText={date.Date} key={index} />
-                            ))}
-                        </DropDownMenu>
+                        <div style={{ width: '50%', display: 'inline-block', marginTop: '10px' }}>
+                            <h3>Start Date</h3>
+                            <DropDownMenu style={{ display: 'inline-block', width: '100%' }} value={this.state.startDate} onChange={this.handleStartDateChange}>
+                                {this.state.dates.map((date, index) => (
+                                    <MenuItem value={date.Date.trim()} primaryText={date.Date} key={index} />
+                                ))}
+                            </DropDownMenu>
+                        </div>
+                        <div style={{ width: '50%', display: 'inline-block' }}>
+                            <h3>End Date</h3>
+                            <DropDownMenu style={{ display: 'inline-block', width: '100%'}} value={this.state.endDate} onChange={this.handleEndDateChange}>
+                                {this.state.dates.map((date, index) => (
+                                    <MenuItem value={date.Date.trim()} primaryText={date.Date} key={index} />
+                                ))}
+                            </DropDownMenu>
+                        </div>
                     </Paper>
                 </Paper>
             </div>

@@ -1,0 +1,15 @@
+@import 'variables';
+
+.side-menu{
+    padding-top: 20px;
+    .metric-container{
+        padding: 8px 10px 0 10px;
+        h3{
+            margin: 0;
+            margin-top: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            color: $secondary-text-color;
+        }
+    }
+}
