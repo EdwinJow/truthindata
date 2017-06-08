@@ -21,7 +21,7 @@ import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 
 import mapStyles from './googlemaps/styles/grayscale.json'
-import '../css/real-estate-tracker.min.css'
+import '../css/real-estate-tracker.css'
 
 const SimpleMapExampleGoogleMap = withGoogleMap(props => (
         <GoogleMap
