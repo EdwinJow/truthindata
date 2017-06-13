@@ -50,11 +50,12 @@ app.get('/census', function(req, res){
 function getCollectionDocuments(collectionName, req, res){
     MongoClient.connect(process.env.MONGODB_URI, function(err, db){
         if(err) throw err;
-        var collection = db.collection(collectionName);
-        var request = {};
+        let collection = db.collection(collectionName);
+        let request = {};
+        let startDate;
+        let endDate;
 
-        if(req.query.State)
-        {
+        if (req.query.State) {
             request = {
                 ContainingState: req.query.State
             }

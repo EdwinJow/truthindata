@@ -40,7 +40,7 @@ const SimpleMapExampleGoogleMap = withGoogleMap(props => (
                 options={{
                     fillColor: poly.fillColor ? poly.fillColor : '#13a168',
                     strokeColor: poly.strokeColor ? poly.strokeColor : '#13a168',
-                    label: poly.label,
+                    pLabel: poly.label,
                     type: poly.type,
                     state: poly.state,
                     parentComponent: props.parentComponent
@@ -49,17 +49,21 @@ const SimpleMapExampleGoogleMap = withGoogleMap(props => (
         ))}
         {props.markers.map((marker, index) => (
             <Marker
-                {...marker}
+                position={marker.position}
+                key={marker.key}
                 icon={{
                     path: 'M0-48c-9.8 0-17.7 7.8-17.7 17.4 0 15.5 17.7 30.6 17.7 30.6s17.7-15.4 17.7-30.6c0-9.6-7.9-17.4-17.7-17.4z',
                     fillColor: '#ff9800',
                     fillOpacity: .8,
                     strokeColor: 'black',
                     strokeWidth: 1,
+                    scale: marker.iconScale
                 }}
                 onClick={props.parentComponent.handleMarkerClick}
                 options={{
-                    parentComponent: props.parentComponent
+                    parentComponent: props.parentComponent,
+                    pLabel: marker.label,
+                    body: marker.body
                 }}
             />
         ))}
@@ -74,8 +78,9 @@ export default class RealEstateTracker extends Component {
             gmap: null,
             modalOpen: false,
             modalTitle: null,
+            modalBody: null,
             markers: [{ centroid: null, key: 0}],
-            geotype: 1,
+            geotype: 2,
             dates: [],
             startDate: '2010-10',
             endDate: '2010-10'
@@ -106,24 +111,45 @@ export default class RealEstateTracker extends Component {
                 EndDate: this.state.endDate
             }
         })
-            .then(function (response) {
-                debugger;
-                var zips =  response.data.map(obj => (
-                    {
-                        position: {
-                            lat: obj.Lat,
-                            lng: obj.Lng
-                        },
-                        key: obj.Zip,
-                        label: obj.Zip.toString(),
-                        state: obj.ContainingState
-                    }));
-                this.setState({markers: zips});
+        .then(function (response) {
+            debugger;
+            var max = 0; 
+            let zipData = response.data;
+            let len = zipData.length;
+
+            for(var i = 0; i < len; i++){
+                let row = zipData[i];
+                let increase = row[this.state.endDate] - row[this.state.startDate];
+                increase = (increase / row[this.state.startDate]);
+
+                if(increase === Infinity)
+                    increase = 0;
+
+                row.increase = increase;
+                if(increase > max){
+                    max = increase;
+                }                   
             }
-            .bind(this))
-            .catch(function (error) {
-                console.log(error);
-            });
+            var zips =  zipData.map(obj => (
+                {
+                    position: {
+                        lat: obj.Lat,
+                        lng: obj.Lng
+                    },
+                    key: obj.Zip,
+                    label: obj.Zip.toString(),
+                    body: Math.round(obj.increase * 100) + '% increase',
+                    state: obj.ContainingState,
+                    iconScale: +(obj.increase / max).toFixed(2),
+                    increase: obj.increase
+                }));
+            debugger;
+            this.setState({markers: zips});
+        }
+        .bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
     }
 
     getGeoShapes(type, req){
@@ -160,31 +186,30 @@ export default class RealEstateTracker extends Component {
     }
 
     handlePolyClick(e){        
-        debugger;
-        console.log(this.label);
+        console.log(this.pLabel);
         let isState = this.type === 'states';
         let _this = this.parentComponent;
 
         if(_this.state.geotype === 1 && isState){
-            _this.getGeoShapes('counties', this.label);
+            _this.getGeoShapes('counties', this.pLabel);
                 return;
         }
 
         if(_this.state.geotype === 2 && isState){
-            _this.getZips(this.label);
+            _this.getZips(this.pLabel);
             return;
         }
         
-        _this.handleModalOpen(this.label);
+        _this.handleModalOpen(this.pLabel);
     }
 
     handleMarkerClick(e){
         let _this = this.parentComponent;
-        _this.handleModalOpen(this.label);
+        _this.handleModalOpen(this.pLabel, this.body);
     }
 
-    handleModalOpen = (label) => {
-        this.setState({ modalOpen: true, modalTitle: label });
+    handleModalOpen = (label, body) => {
+        this.setState({ modalOpen: true, modalTitle: label, modalBody: body });
     };
 
     handleModalClose = () => {
@@ -192,22 +217,19 @@ export default class RealEstateTracker extends Component {
     };
 
     handleStartDateChange = (event, index, value) =>{
-        this.setState({ startDate: value })
+        this.setState({ startDate: value, endDate: value })
     }
 
     handleEndDateChange = (event, index, value) =>{
-        debugger;
         this.setState({ endDate: value })
     }
 
-    bindGeoTypes(event, menuItem,index){
-        let type = menuItem.props.primaryText;
+    bindGeoTypes(event, menuItem, index){
+        let type = menuItem.props.type;
         let req = {
-            type: type,
-            startDate: this.state.startDate,
-            endDate: this.state.endDate
+            type: null
         }
-        this.getGeoShapes(req)       
+        this.getGeoShapes(type, req)       
     }
 
     handleGeoTypeChange = (event, index, value) => this.setState({geotype: value});
@@ -240,11 +262,12 @@ export default class RealEstateTracker extends Component {
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
                 >
+                    {this.state.modalBody}
                 </Dialog>
                 <Paper className='side-menu' style={{ height: '100%', width: '500px', backgroundColor: 'rgba(0,0,0,.8)', padding: '10px 20px', position: 'fixed', top: '68px' }} zDepth={1}>
                     <Paper style={{ display: 'inline-block' }}>
                         <Menu onItemTouchTap={this.bindGeoTypes}>
-                            <MenuItem primaryText="states" key="states" />
+                            <MenuItem primaryText="States" type="states" />
                         </Menu>
                     </Paper>
                     <Paper className="metric-container" style={{ display: 'block' }}>
