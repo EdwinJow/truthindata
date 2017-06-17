@@ -38,12 +38,6 @@ class Layout extends Component {
                             {this.props.children}
                         </div>
                     </div>
-
-                    {/*<p className="App-intro">
-                        {this.state.fetching
-                            ? 'Fetching message from API'
-                            : this.state.message}
-                        </p>*/}
                 </div>
             </MuiThemeProvider>
         );

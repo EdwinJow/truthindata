@@ -117,7 +117,7 @@ export default class RealEstateTracker extends Component {
             let zipData = response.data;
             let len = zipData.length;
 
-            for(var i = 0; i < len; i++){
+            for(let i = 0; i < len; i++){
                 let row = zipData[i];
                 let increase = row[this.state.endDate] - row[this.state.startDate];
                 increase = (increase / row[this.state.startDate]);
