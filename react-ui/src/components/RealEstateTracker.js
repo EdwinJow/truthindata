@@ -89,6 +89,7 @@ export default class RealEstateTracker extends Component {
         this.bindGeoTypes= this.bindGeoTypes.bind(this);
         this.getGeoShapes = this.getGeoShapes.bind(this);
         this.getZips = this.getZips.bind(this);
+        this.handlePolyClick = this.handlePolyClick.bind();
     }
 
     componentDidMount() {
@@ -158,27 +159,27 @@ export default class RealEstateTracker extends Component {
                 State: req.type
             }
         })
-            .then(function (response) {
-                const encoder = window.google.maps.geometry.encoding;
-                let color;
+        .then(function (response) {
+            const encoder = window.google.maps.geometry.encoding;
+            let color;
 
-                type === 'counties' ? color = orange300 : color = cyan300;
+            type === 'counties' ? color = orange300 : color = cyan300;
 
-                var polys =  response.data.map(obj => (
-                    {
-                        paths: encoder.decodePath(obj.EncodedPolyline),
-                        id: obj._id,
-                        fillColor: color,
-                        label: obj.State ? obj.State : obj.GeoName,
-                        state: obj.State ? obj.State : obj.ContainingState,
-                        type: type
-                    }));
-                this.setState({polys: polys});
-            }
-            .bind(this))
-            .catch(function (error) {
-                console.log(error);
-            });
+            var polys =  response.data.map(obj => (
+                {
+                    paths: encoder.decodePath(obj.EncodedPolyline),
+                    id: obj._id,
+                    fillColor: color,
+                    label: obj.State ? obj.State : obj.GeoName,
+                    state: obj.State ? obj.State : obj.ContainingState,
+                    type: type
+                }));
+            this.setState({polys: polys});
+        }
+        .bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
     }
 
     handleMapMounted(map) {
