@@ -31,7 +31,7 @@ app.get('/price-to-rent-az', function(req, res){
             }
         ]
 
-        collection.aggregate(request).toArray(function (err, docs) {
+        collection.aggregate(request).limit(50).toArray(function (err, docs) {
             if(err) throw err;
             db.close();    
             res.set('Content-Type', 'application/json');

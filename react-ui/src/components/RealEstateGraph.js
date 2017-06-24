@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import * as V from 'victory';
-import { VictoryChart, VictoryLine, VictoryTooltip } from 'victory';
+import { VictoryChart, VictoryLine, VictoryTooltip, VictoryVoronoiContainer } from 'victory';
 
 class RealEstateGraph extends Component {
     constructor(props) {
         super(props);
         this.state = {
             startDate: '2015-10',
-            endDate: '2016-10',
+            endDate: '2017-01',
             graphData: [],
             dateRange: []
         };
@@ -41,15 +41,26 @@ class RealEstateGraph extends Component {
 
     render() {
         return (          
-            <VictoryChart>
+            <VictoryChart
+                containerComponent={
+                    <VictoryVoronoiContainer
+                        labels={(datum) => datum.RegionName + ' ' + datum.Value}
+                        labelComponent={<VictoryTooltip/>}
+                    />
+                }
+                animate={{duration: 2000}}
+            >
                 {this.state.graphData.map((row, index) => (
                     <VictoryLine
+                        interpolation="natural"
                         key={index}
                         labelComponent={<VictoryTooltip/>}
                         data={row.data}
                         x="Date"
                         y="Value"
-                        labels={(datum) => datum.RegionName + ' ' + datum.Value }
+                        style={{
+                            data: { stroke: (d, active) => active ? "green" : "black"}
+                        }}
                     />
                 ))}      
             </VictoryChart>
