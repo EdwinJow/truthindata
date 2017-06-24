@@ -89,7 +89,6 @@ export default class RealEstateTracker extends Component {
         this.bindGeoTypes= this.bindGeoTypes.bind(this);
         this.getGeoShapes = this.getGeoShapes.bind(this);
         this.getZips = this.getZips.bind(this);
-        this.handlePolyClick = this.handlePolyClick.bind();
     }
 
     componentDidMount() {
@@ -187,6 +186,7 @@ export default class RealEstateTracker extends Component {
     }
 
     handlePolyClick(e){        
+        debugger;
         console.log(this.pLabel);
         let isState = this.type === 'states';
         let _this = this.parentComponent;
