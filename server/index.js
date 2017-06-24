@@ -8,6 +8,45 @@ const MongoClient = require('mongodb').MongoClient
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
 
+app.get('/price-to-rent-az', function(req, res){
+    MongoClient.connect(process.env.MONGODB_URI, function(err, db){
+        if(err) throw err;
+
+        let collection = db.collection('PriceToRentAZDeep');
+
+        let = request = [
+            {
+                $match: {
+                    Date: {
+                        $gte: req.query.StartDate,
+                        $lte: req.query.EndDate
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$RegionName",
+                    data: { $push: "$$ROOT" }
+                }
+            }
+        ]
+
+        collection.aggregate(request).toArray(function (err, docs) {
+            if(err) throw err;
+            db.close();    
+            res.set('Content-Type', 'application/json');
+
+            let uniqueDates = [...new Set(docs.map(item => item.Date))];
+            let data = {
+                records: docs,      
+                dates: uniqueDates
+            }
+
+            res.send(JSON.stringify(data));
+        });
+    })
+});
+
 app.get('/states', function(req, res){
    getCollectionDocuments('States', req, res);
 });

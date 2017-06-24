@@ -3,6 +3,7 @@ import Layout from './shared/Layout';
 import Testing from './components/Testing'
 import Admin from './components/Admin'
 import RealEstateTracker from './components/RealEstateTracker'
+import RealEstateGraph from './components/RealEstateGraph'
 import {render} from 'react-dom'
 
 import './css/index.css';
@@ -18,6 +19,7 @@ render((
             <Route path="/testing" component={Testing} />
             <Route path="/admin" component={Admin} />
             <Route path="/real-estate-tracker" component={RealEstateTracker} />
+            <Route path="/real-estate-graph" component={RealEstateGraph} />
         </Route>
     </Router>
 ), document.getElementById('root'))
