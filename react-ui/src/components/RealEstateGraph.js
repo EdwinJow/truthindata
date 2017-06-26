@@ -3,7 +3,6 @@ import axios from 'axios';
 import { VictoryChart, VictoryLine, VictoryTooltip, VictoryVoronoiContainer } from 'victory';
 import MenuItem from 'material-ui/MenuItem';
 import SelectField from 'material-ui/SelectField';
-import AppBar from 'material-ui/AppBar';
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -24,14 +23,10 @@ class RealEstateGraph extends Component {
         this.getPriceToRentData();
     }
 
-    handleChange = (event, index, value) => {
-        event.persist();
-        console.log(event.target);
-        debugger;
-        // event.persist()
-        // const field = event.target.id;
-        // debugger;
-        // this.setState({[field]: value});
+    handleDateChange = (event, type) => {
+        event.persist()
+        const value = event.target.innerText;
+        this.setState({[type]: value});
     };
 
     getDateRange(){
@@ -68,22 +63,29 @@ class RealEstateGraph extends Component {
     render() {
         return (         
             <div className="height100"> 
+                {/*TODO: Fix this ghetto binding*/}
                 <SelectField
                     floatingLabelText="Start Date"
                     value={this.state.startDate}
-                    onChange={this.handleChange}
+                    onChange={e => this.handleDateChange(e, "startDate")}
+                    style={{
+                        marginLeft: '15px'
+                    }}
                 >
                     {this.state.dateRange.map((row, index) => (
-                        <MenuItem name="startDate" key={index} value={row} primaryText={row} />
+                        <MenuItem key={index} value={row} primaryText={row} />
                     ))}
                 </SelectField>
                 <SelectField
                     floatingLabelText="End Date"
                     value={this.state.endDate}
-                    onChange={this.handleChange}
+                    onChange={e => this.handleDateChange(e, "endDate")}
+                    style={{
+                        marginLeft: '5px'
+                    }}
                 >
                     {this.state.dateRange.map((row, index) => (
-                        <MenuItem name="endDate" key={index} value={row} primaryText={row} />
+                        <MenuItem key={index} value={row} primaryText={row} />
                     ))}
                 </SelectField>
                 <VictoryChart
@@ -93,7 +95,7 @@ class RealEstateGraph extends Component {
                             labelComponent={<VictoryTooltip/>}
                         />
                     }
-                    animate={{duration: 2000}}
+                    animate={{duration: 2000, onLoad: {duration: 1000}, onEnter: {duration: 500, before: () => ({y: 0})}}}
                 >
                     {this.state.graphData.map((row, index) => (
                         <VictoryLine

@@ -16,7 +16,8 @@
   "dependencies": {
     "axios": "^0.16.1",
     "express": "^4.14.1",
-    "mongodb": "^2.2.26"
+    "mongodb": "^2.2.26",
+    "redis": "^2.7.1"
   },
   "repository": {
     "type": "git",
