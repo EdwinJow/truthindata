@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { VictoryChart, VictoryLine, VictoryTooltip, VictoryVoronoiContainer } from 'victory';
+// import { VictoryChart, VictoryLine, VictoryTooltip, VictoryVoronoiContainer } from 'victory';
 import MenuItem from 'material-ui/MenuItem';
 import SelectField from 'material-ui/SelectField';
+const {Table, Column, Cell} = require('fixed-data-table');
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -30,7 +31,7 @@ class RealEstateGraph extends Component {
     };
 
     getDateRange(){
-        axios.get('/price-to-rent-az/dates')
+        axios.get('/az-zip-metrics/dates')
         .then(function (response) {
             var data = response.data;
             this.setState({
@@ -43,7 +44,7 @@ class RealEstateGraph extends Component {
     }
 
     getPriceToRentData(){
-        axios.get('/price-to-rent-az', {
+        axios.get('/az-zip-metrics', {
             params: {
                 StartDate: this.state.startDate,
                 EndDate: this.state.endDate
@@ -54,6 +55,7 @@ class RealEstateGraph extends Component {
             this.setState({
                 graphData: data.records
             });
+            console.log(this.state.graphData);
         }.bind(this))
         .catch(function (error) {
             console.log(error);
@@ -63,7 +65,23 @@ class RealEstateGraph extends Component {
     render() {
         return (         
             <div className="height100"> 
-                {/*TODO: Fix this ghetto binding*/}
+                <Table
+                    rowsCount={this.state.graphData.length}
+                    rowHeight={50}
+                    headerHeight={50}
+                    width={1000}
+                    height={500}>
+                    <Column
+                        header={<Cell>RegionName</Cell>}
+                        cell={props => (
+                            <Cell {...props}>
+                                {this.state.graphData[props.rowIndex].data.RegionName}
+                            </Cell>
+                        )}
+                        width={200}
+                    />
+                </Table>
+                {/*TODO: Fix this ghetto binding
                 <SelectField
                     floatingLabelText="Start Date"
                     value={this.state.startDate}
@@ -110,7 +128,7 @@ class RealEstateGraph extends Component {
                             }}
                         />
                     ))}      
-                </VictoryChart>
+                </VictoryChart>*/}
             </div>
         );
     }

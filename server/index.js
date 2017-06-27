@@ -9,8 +9,8 @@ var client = require('redis').createClient(process.env.REDIS_URL);
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
 
-app.get('/price-to-rent-az/dates', function(req, res){
-    const cacheKey = 'price-to-az-dates';
+app.get('/az-zip-metrics/dates', function(req, res){
+    const cacheKey = 'az-zip-metrics-dates';
     client.get(cacheKey, function(err, reply){
         if(err) throw err;
         if(reply){
@@ -19,7 +19,7 @@ app.get('/price-to-rent-az/dates', function(req, res){
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
-                let collection = db.collection('PriceToRentAZDeep');
+                let collection = db.collection('DateSelector');
                 let uniqueDates = collection.distinct("Date", function (err, docs) {
                     if (err) throw err;
 
@@ -38,29 +38,32 @@ app.get('/price-to-rent-az/dates', function(req, res){
     });
 });
 
-app.get('/price-to-rent-az', function(req, res){
+app.get('/az-zip-metrics', function(req, res){
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
 
-    const cacheKey = 'price-to-az-startdate:' + startDate + '-enddate:' + endDate;
+    const cacheKey = 'az-zip-metrics-startdate:' + startDate + '-enddate:' + endDate;
+    client.del(cacheKey);
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
         if (reply) {
+            console.log('metrics from redis')
             res.send(reply);
         } else {
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
-                let collection = db.collection('PriceToRentAZDeep');
+                let collection = db.collection('ArizonaZipMetrics');
 
                 let = request = [
                     {
-                        $match: {
-                            Date: {
-                                $gte: startDate,
-                                $lte: endDate
-                            }
+                        $match:
+                        {
+                            $and: [ 
+                              { Date: { $gte: startDate, $lte: endDate }}, 
+                              { Metric: req.query.Metric ? req.query.Metric : 'PriceToRent'}, 
+                            ]
                         }
                     },
                     {
