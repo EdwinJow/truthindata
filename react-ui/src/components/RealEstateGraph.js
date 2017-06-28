@@ -3,7 +3,8 @@ import axios from 'axios';
 // import { VictoryChart, VictoryLine, VictoryTooltip, VictoryVoronoiContainer } from 'victory';
 import MenuItem from 'material-ui/MenuItem';
 import SelectField from 'material-ui/SelectField';
-const {Table, Column, Cell} = require('fixed-data-table');
+import ReactTable from 'react-table'
+import 'react-table/react-table.css'
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -44,7 +45,7 @@ class RealEstateGraph extends Component {
     }
 
     getPriceToRentData(){
-        axios.get('/az-zip-metrics', {
+        axios.get('/az-zip-metrics/table', {
             params: {
                 StartDate: this.state.startDate,
                 EndDate: this.state.endDate
@@ -63,24 +64,50 @@ class RealEstateGraph extends Component {
     }
 
     render() {
+        const columns = [{
+            Header: 'Zip',
+            accessor: 'RegionName'
+        }, 
+        {
+            Header: 'City',
+            accessor: 'City'
+        }, 
+        {
+            Header: 'State',
+            accessor: 'State'
+        }, 
+        {
+            Header: 'Metric', 
+            accessor: 'Metric'
+        },
+        {
+            Header: 'Value',
+            accessor: 'Value'
+        },
+        {
+            Header: 'Date',
+            accessor: 'Date'
+        }]
         return (         
             <div className="height100"> 
-                <Table
-                    rowsCount={this.state.graphData.length}
-                    rowHeight={50}
-                    headerHeight={50}
-                    width={1000}
-                    height={500}>
-                    <Column
-                        header={<Cell>RegionName</Cell>}
-                        cell={props => (
-                            <Cell {...props}>
-                                {this.state.graphData[props.rowIndex].data.RegionName}
-                            </Cell>
-                        )}
-                        width={200}
-                    />
-                </Table>
+                <ReactTable
+                    data={this.state.graphData}
+                    columns={columns}
+                    /*pivotBy={['RegionName','City','State','Metric']}*/
+                    filterable={true}
+                    defaultFilterMethod={(filter, row) => (String(row[filter.id]).toLowerCase().includes(String(filter.value).toLowerCase()))}
+                    getTdProps={(state, rowInfo, column, instance) => {
+                        return {
+                            onClick: e => console.log('Click', {
+                                state,
+                                rowInfo,
+                                column,
+                                instance,
+                                event: e
+                            })
+                        }
+                    }}
+                />
                 {/*TODO: Fix this ghetto binding
                 <SelectField
                     floatingLabelText="Start Date"

@@ -38,11 +38,51 @@ app.get('/az-zip-metrics/dates', function(req, res){
     });
 });
 
-app.get('/az-zip-metrics', function(req, res){
+app.get('/az-zip-metrics/table', function(req, res){
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
 
-    const cacheKey = 'az-zip-metrics-startdate:' + startDate + '-enddate:' + endDate;
+    const cacheKey = 'az-zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate;
+    client.del(cacheKey);
+
+    client.get(cacheKey, function (err, reply) {
+        if (err) throw err;
+        if (reply) {
+            console.log('metrics from redis')
+            res.send(reply);
+        } else {
+            MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+                if (err) throw err;
+
+                let collection = db.collection('ArizonaZipMetrics');
+
+                let = request = {
+                    Date: {$gte: startDate, $lte: endDate}
+                }
+
+                collection.find(request).toArray(function (err, docs) {
+                    if (err) throw err;
+                    db.close();
+                    res.set('Content-Type', 'application/json');
+
+                    let data = JSON.stringify({
+                        records: docs
+                    });
+
+                    client.set(cacheKey, data, function (err) { if (err) throw err; });
+                    res.send(data);
+                });
+            })
+        }
+    });   
+});
+
+
+app.get('/az-zip-metrics/graph', function(req, res){
+    const startDate = req.query.StartDate;
+    const endDate = req.query.EndDate;
+
+    const cacheKey = 'az-zip-metrics-graph-startdate:' + startDate + '-enddate:' + endDate;
     client.del(cacheKey);
 
     client.get(cacheKey, function (err, reply) {
@@ -88,9 +128,7 @@ app.get('/az-zip-metrics', function(req, res){
                 });
             })
         }
-    });
-
-    
+    });   
 });
 
 
