@@ -4,6 +4,7 @@ import axios from 'axios';
 import MenuItem from 'material-ui/MenuItem';
 import SelectField from 'material-ui/SelectField';
 import ReactTable from 'react-table'
+import _ from 'lodash'
 import 'react-table/react-table.css'
 
 class RealEstateGraph extends Component {
@@ -13,16 +14,17 @@ class RealEstateGraph extends Component {
             startDate: '2015-10',
             endDate: '2017-01',
             graphData: [],
-            dateRange: []
+            dateRange: [],
+            metric: 'All'
         };
 
-        this.getPriceToRentData = this.getPriceToRentData.bind(this);
+        this.getPriceToRentData = this.getTableMetricData.bind(this);
         this.getDateRange = this.getDateRange.bind(this);
     }
     
     componentDidMount(){
         this.getDateRange();
-        this.getPriceToRentData();
+        this.getTableMetricData();
     }
 
     handleDateChange = (event, type) => {
@@ -30,6 +32,12 @@ class RealEstateGraph extends Component {
         const value = event.target.innerText;
         this.setState({[type]: value});
     };
+
+    handleMetricChange = (event, index, value) =>{
+        this.setState({ metric: value }, function(){
+            this.getTableMetricData();
+        });
+    }
 
     getDateRange(){
         axios.get('/az-zip-metrics/dates')
@@ -44,11 +52,12 @@ class RealEstateGraph extends Component {
         });
     }
 
-    getPriceToRentData(){
+    getTableMetricData(){
         axios.get('/az-zip-metrics/table', {
             params: {
                 StartDate: this.state.startDate,
-                EndDate: this.state.endDate
+                EndDate: this.state.endDate,
+                Metric: this.state.metric
             }
         })
         .then(function (response) {
@@ -56,7 +65,6 @@ class RealEstateGraph extends Component {
             this.setState({
                 graphData: data.records
             });
-            console.log(this.state.graphData);
         }.bind(this))
         .catch(function (error) {
             console.log(error);
@@ -74,7 +82,9 @@ class RealEstateGraph extends Component {
         }, 
         {
             Header: 'State',
-            accessor: 'State'
+            accessor: 'State',
+            aggregate: vals => vals[0],
+            PivotValue: ({value}) => <span style={{color: 'darkblue'}}>{value}</span>
         }, 
         {
             Header: 'Metric', 
@@ -82,7 +92,11 @@ class RealEstateGraph extends Component {
         },
         {
             Header: 'Value',
-            accessor: 'Value'
+            accessor: 'Value',
+            aggregate: vals => _.round(_.mean(vals)),
+            Aggregated: row => {
+                return <span>{row.value} (avg)</span>
+            }
         },
         {
             Header: 'Date',
@@ -90,12 +104,25 @@ class RealEstateGraph extends Component {
         }]
         return (         
             <div className="height100"> 
+                <SelectField
+                    floatingLabelText="Metric Select"
+                    value={this.state.metric}
+                    onChange={this.handleMetricChange}
+                    style={{
+                        marginLeft: '15px'
+                    }}
+                >
+                    <MenuItem value={"All"} primaryText="All" />
+                    <MenuItem value={"ZHVI"} primaryText="Home Value Index" />
+                    <MenuItem value={"IncreasingValues"} primaryText="Increasing Value" />
+                    <MenuItem value={"PriceToRent"} primaryText="Price To Rent" />
+                    <MenuItem value={"Turnover"} primaryText="Turnover" />
+                </SelectField>
                 <ReactTable
                     data={this.state.graphData}
                     columns={columns}
-                    /*pivotBy={['RegionName','City','State','Metric']}*/
+                    pivotBy={['RegionName']}
                     filterable={true}
-                    defaultFilterMethod={(filter, row) => (String(row[filter.id]).toLowerCase().includes(String(filter.value).toLowerCase()))}
                     getTdProps={(state, rowInfo, column, instance) => {
                         return {
                             onClick: e => console.log('Click', {

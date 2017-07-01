@@ -41,8 +41,9 @@ app.get('/az-zip-metrics/dates', function(req, res){
 app.get('/az-zip-metrics/table', function(req, res){
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
+    const metric = req.query.Metric;
 
-    const cacheKey = 'az-zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate;
+    const cacheKey = 'az-zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric;
     client.del(cacheKey);
 
     client.get(cacheKey, function (err, reply) {
@@ -56,9 +57,15 @@ app.get('/az-zip-metrics/table', function(req, res){
 
                 let collection = db.collection('ArizonaZipMetrics');
 
-                let = request = {
+                let request = {
                     Date: {$gte: startDate, $lte: endDate}
                 }
+
+                if(metric !== 'All')
+
+                request.Metric = metric;
+
+                console.log(request);
 
                 collection.find(request).toArray(function (err, docs) {
                     if (err) throw err;
