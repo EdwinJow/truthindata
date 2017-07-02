@@ -3,6 +3,11 @@ import axios from 'axios';
 // import { VictoryChart, VictoryLine, VictoryTooltip, VictoryVoronoiContainer } from 'victory';
 import MenuItem from 'material-ui/MenuItem';
 import SelectField from 'material-ui/SelectField';
+import IconButton from 'material-ui/IconButton';
+import Dialog from 'material-ui/Dialog';
+import FlatButton from 'material-ui/FlatButton';
+import FontIcon from 'material-ui/FontIcon';
+
 import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
@@ -13,9 +18,11 @@ class RealEstateGraph extends Component {
         this.state = {
             startDate: '2015-10',
             endDate: '2017-01',
-            graphData: [],
+            tableData: [],
             dateRange: [],
-            metric: 'All'
+            metric: 'All',
+            modalOpen: false,
+            modalBody: 'Beepbepp'
         };
 
         this.getPriceToRentData = this.getTableMetricData.bind(this);
@@ -38,6 +45,14 @@ class RealEstateGraph extends Component {
             this.getTableMetricData();
         });
     }
+
+    handleModalOpen = () =>{
+        this.setState({modalOpen: true})
+    }; 
+
+    handleModalClose = () =>{
+        this.setState({modalOpen: false})
+    }; 
 
     getDateRange(){
         axios.get('/az-zip-metrics/dates')
@@ -63,7 +78,7 @@ class RealEstateGraph extends Component {
         .then(function (response) {
             var data = response.data;
             this.setState({
-                graphData: data.records
+                tableData: data.records
             });
         }.bind(this))
         .catch(function (error) {
@@ -71,14 +86,46 @@ class RealEstateGraph extends Component {
         });
     }
 
+    bindGraphByZip= (value) =>{
+        axios.get('/az-zip-metrics/graph', {
+            params: {
+                StartDate: this.state.startDate,
+                EndDate: this.state.endDate,
+                Metric: this.state.metric,
+                Zip: value
+            }
+        })
+        .then(function (response) {
+            var data = response.data;
+            this.setState({
+                graphData: data.records
+            });
+            debugger;
+        }.bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
+
+
     render() {
         const columns = [{
             Header: 'Zip',
-            accessor: 'RegionName'
+            accessor: 'RegionName',
+            PivotValue: ({ value }) => <span>{value}
+                    <IconButton
+                        onTouchTap={() => this.bindGraphByZip(value)}
+                        style={{float: 'right'}}
+                        value={value}
+                    >
+                        <FontIcon className="material-icons" style={{marginTop: '5rem'}}>home</FontIcon>
+                    </IconButton>
+                </span>
         }, 
         {
             Header: 'City',
-            accessor: 'City'
+            accessor: 'City',
+            PivotValue: ({value}) => <span style={{color: 'darkblue'}}>{value}</span>
         }, 
         {
             Header: 'State',
@@ -100,8 +147,16 @@ class RealEstateGraph extends Component {
         },
         {
             Header: 'Date',
-            accessor: 'Date'
-        }]
+            accessor: 'Date',
+            PivotValue: ({value}) => <span style={{color: 'darkblue'}}>{value}</span>
+        }];
+        const modalActions = [
+            <FlatButton
+                label="Cancel"
+                primary={true}
+                onTouchTap={this.handleModalClose}
+            />
+        ]
         return (         
             <div className="height100"> 
                 <SelectField
@@ -119,7 +174,7 @@ class RealEstateGraph extends Component {
                     <MenuItem value={"Turnover"} primaryText="Turnover" />
                 </SelectField>
                 <ReactTable
-                    data={this.state.graphData}
+                    data={this.state.tableData}
                     columns={columns}
                     pivotBy={['RegionName']}
                     filterable={true}
@@ -135,6 +190,15 @@ class RealEstateGraph extends Component {
                         }
                     }}
                 />
+                <Dialog
+                    title="Dialog With Actions"
+                    modal={false}
+                    actions={modalActions}
+                    open={this.state.modalOpen}
+                    onRequestClose={this.handleModalClose}
+                >
+                    {this.state.modalBody}
+                </Dialog>
                 {/*TODO: Fix this ghetto binding
                 <SelectField
                     floatingLabelText="Start Date"

@@ -4,6 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const axios = require('axios')
 const MongoClient = require('mongodb').MongoClient
+const util = require('util')
 var client = require('redis').createClient(process.env.REDIS_URL);
 
 // Priority serve any static files.
@@ -44,7 +45,6 @@ app.get('/az-zip-metrics/table', function(req, res){
     const metric = req.query.Metric;
 
     const cacheKey = 'az-zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric;
-    client.del(cacheKey);
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -61,11 +61,11 @@ app.get('/az-zip-metrics/table', function(req, res){
                     Date: {$gte: startDate, $lte: endDate}
                 }
 
-                if(metric !== 'All')
+                if(metric !== 'All'){
+                    request.Metric = metric;
+                }
 
-                request.Metric = metric;
-
-                console.log(request);
+                console.log(util.inspect(request, false, null));
 
                 collection.find(request).toArray(function (err, docs) {
                     if (err) throw err;
@@ -88,8 +88,10 @@ app.get('/az-zip-metrics/table', function(req, res){
 app.get('/az-zip-metrics/graph', function(req, res){
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
+    const metric  = req.query.Metric;
+    const zip = req.query.Zip;
 
-    const cacheKey = 'az-zip-metrics-graph-startdate:' + startDate + '-enddate:' + endDate;
+    const cacheKey = 'az-zip-metrics-graph-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric + '-zip:' + zip;
     client.del(cacheKey);
 
     client.get(cacheKey, function (err, reply) {
@@ -103,13 +105,12 @@ app.get('/az-zip-metrics/graph', function(req, res){
 
                 let collection = db.collection('ArizonaZipMetrics');
 
-                let = request = [
+                let request = [
                     {
                         $match:
                         {
                             $and: [ 
-                              { Date: { $gte: startDate, $lte: endDate }}, 
-                              { Metric: req.query.Metric ? req.query.Metric : 'PriceToRent'}, 
+                              { Date: { $gte: startDate, $lte: endDate }}
                             ]
                         }
                     },
@@ -121,7 +122,21 @@ app.get('/az-zip-metrics/graph', function(req, res){
                     }
                 ]
 
-                collection.aggregate(request).limit(20).toArray(function (err, docs) {
+                if (metric !== 'All') {
+                    request[0].$match.$and.push({
+                        Metric: metric
+                    });
+                }
+
+                if (zip !== null) {
+                    request[0].$match.$and.push({
+                        RegionName: parseInt(zip)
+                    });
+                }
+
+                console.log(util.inspect(request, false, null));
+
+                collection.aggregate(request).toArray(function (err, docs) {
                     if (err) throw err;
                     db.close();
                     res.set('Content-Type', 'application/json');
