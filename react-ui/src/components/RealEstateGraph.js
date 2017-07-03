@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-// import { VictoryChart, VictoryLine, VictoryTooltip, VictoryVoronoiContainer } from 'victory';
+import { VictoryChart, VictoryLabel, VictoryBar, VictoryTheme, VictoryAxis  } from 'victory';
 import MenuItem from 'material-ui/MenuItem';
 import SelectField from 'material-ui/SelectField';
 import IconButton from 'material-ui/IconButton';
@@ -19,6 +19,7 @@ class RealEstateGraph extends Component {
             startDate: '2015-10',
             endDate: '2017-01',
             tableData: [],
+            graphData: [],
             dateRange: [],
             metric: 'All',
             modalOpen: false,
@@ -99,8 +100,9 @@ class RealEstateGraph extends Component {
             var data = response.data;
             this.setState({
                 graphData: data.records
-            });
+            });        
             debugger;
+            this.handleModalOpen();
         }.bind(this))
         .catch(function (error) {
             console.log(error);
@@ -191,62 +193,35 @@ class RealEstateGraph extends Component {
                     }}
                 />
                 <Dialog
-                    title="Dialog With Actions"
+                    title="Zip Detail"
                     modal={false}
                     actions={modalActions}
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
                 >
-                    {this.state.modalBody}
-                </Dialog>
-                {/*TODO: Fix this ghetto binding
-                <SelectField
-                    floatingLabelText="Start Date"
-                    value={this.state.startDate}
-                    onChange={e => this.handleDateChange(e, "startDate")}
-                    style={{
-                        marginLeft: '15px'
-                    }}
-                >
-                    {this.state.dateRange.map((row, index) => (
-                        <MenuItem key={index} value={row} primaryText={row} />
-                    ))}
-                </SelectField>
-                <SelectField
-                    floatingLabelText="End Date"
-                    value={this.state.endDate}
-                    onChange={e => this.handleDateChange(e, "endDate")}
-                    style={{
-                        marginLeft: '5px'
-                    }}
-                >
-                    {this.state.dateRange.map((row, index) => (
-                        <MenuItem key={index} value={row} primaryText={row} />
-                    ))}
-                </SelectField>
-                <VictoryChart
-                    containerComponent={
-                        <VictoryVoronoiContainer
-                            labels={(datum) => datum.RegionName + ' ' + datum.Value}
-                            labelComponent={<VictoryTooltip/>}
-                        />
-                    }
-                    animate={{duration: 2000, onLoad: {duration: 1000}, onEnter: {duration: 500, before: () => ({y: 0})}}}
-                >
-                    {this.state.graphData.map((row, index) => (
-                        <VictoryLine
-                            interpolation="natural"
-                            key={index}
-                            labelComponent={<VictoryTooltip/>}
-                            data={row.data}
+                    <VictoryChart
+                        domainPadding={20}
+                        animate={{ duration: 1000, onLoad: { duration: 1000 }, onEnter: { duration: 500, before: () => ({ y: 0 }) } }}
+                    >
+                        <VictoryBar
+                            /*labelComponent={<VictoryLabel angle={90} />}*/
+                            data={this.state.graphData}
                             x="Date"
                             y="Value"
                             style={{
-                                data: { stroke: (d, active) => active ? "green" : "black"}
+                                data: { stroke: (d, active) => active ? "green" : "black" }
                             }}
+                            padding={70}
                         />
-                    ))}      
-                </VictoryChart>*/}
+                        <VictoryAxis
+                            tickCount={5}
+                            tickLabelComponent = {<VictoryLabel angle={70}/>}
+                        />
+                        <VictoryAxis dependentAxis
+                            tickCount={5}
+                        />
+                    </VictoryChart>
+                </Dialog>
             </div>
         );
     }

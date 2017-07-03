@@ -92,7 +92,6 @@ app.get('/az-zip-metrics/graph', function(req, res){
     const zip = req.query.Zip;
 
     const cacheKey = 'az-zip-metrics-graph-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric + '-zip:' + zip;
-    client.del(cacheKey);
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -105,38 +104,44 @@ app.get('/az-zip-metrics/graph', function(req, res){
 
                 let collection = db.collection('ArizonaZipMetrics');
 
-                let request = [
-                    {
-                        $match:
-                        {
-                            $and: [ 
-                              { Date: { $gte: startDate, $lte: endDate }}
-                            ]
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$RegionName",
-                            data: { $push: "$$ROOT" }
-                        }
-                    }
-                ]
+                // let request = [
+                //     {
+                //         $match:
+                //         {
+                //             $and: [ 
+                //               { Date: { $gte: startDate, $lte: endDate }}
+                //             ]
+                //         }
+                //     },
+                //     {
+                //         $group: {
+                //             _id: "$RegionName",
+                //             data: { $push: "$$ROOT" }
+                //         }
+                //     }
+                // ]
+
+                let request = {
+                    $and: [
+                        { Date: { $gte: startDate, $lte: endDate } }
+                    ]
+                }
 
                 if (metric !== 'All') {
-                    request[0].$match.$and.push({
+                    request.$and.push({
                         Metric: metric
                     });
                 }
 
                 if (zip !== null) {
-                    request[0].$match.$and.push({
+                    request.$and.push({
                         RegionName: parseInt(zip)
                     });
                 }
 
                 console.log(util.inspect(request, false, null));
 
-                collection.aggregate(request).toArray(function (err, docs) {
+                collection.find(request).toArray(function (err, docs) {
                     if (err) throw err;
                     db.close();
                     res.set('Content-Type', 'application/json');
