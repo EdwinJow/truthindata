@@ -10,6 +10,7 @@ import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer }  from 'recharts';
+import {orange500} from 'material-ui/styles/colors';
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -139,7 +140,7 @@ class RealEstateGraph extends Component {
                         style={{float: 'right'}}
                         value={value}
                     >
-                        <FontIcon className='material-icons' style={{marginTop: '5rem'}}>home</FontIcon>
+                        <FontIcon className='material-icons' color={orange500} style={{marginTop: '5rem'}}>timeline</FontIcon>
                     </IconButton>
                 </span>
         }, 
