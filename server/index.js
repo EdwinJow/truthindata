@@ -6,6 +6,7 @@ const axios = require('axios')
 const MongoClient = require('mongodb').MongoClient
 const util = require('util')
 var client = require('redis').createClient(process.env.REDIS_URL);
+var router = express.Router();
 
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
@@ -17,11 +18,12 @@ app.get('/az-zip-metrics/dates', function(req, res){
         if(reply){
             res.send(reply);
         } else{
+            flushRedis('az-zip-metrics-dates');
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
                 let collection = db.collection('DateSelector');
-                let uniqueDates = collection.distinct("Date", function (err, docs) {
+                let uniqueDates = collection.distinct("Date", {"Date": {$gte: '2013-01'}}, function (err, docs) {
                     if (err) throw err;
 
                     let data = {
@@ -52,6 +54,7 @@ app.get('/az-zip-metrics/table', function(req, res){
             console.log('metrics from redis')
             res.send(reply);
         } else {
+            flushRedis('az-zip-metrics-table-startdate');
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
@@ -99,27 +102,11 @@ app.get('/az-zip-metrics/graph', function(req, res){
             console.log('metrics from redis')
             res.send(reply);
         } else {
+            flushRedis('az-zip-metrics-graph-startdate');
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
                 let collection = db.collection('ArizonaZipMetrics');
-
-                // let request = [
-                //     {
-                //         $match:
-                //         {
-                //             $and: [ 
-                //               { Date: { $gte: startDate, $lte: endDate }}
-                //             ]
-                //         }
-                //     },
-                //     {
-                //         $group: {
-                //             _id: "$RegionName",
-                //             data: { $push: "$$ROOT" }
-                //         }
-                //     }
-                // ]
 
                 let request = {
                     $and: [
@@ -157,7 +144,6 @@ app.get('/az-zip-metrics/graph', function(req, res){
         }
     });   
 });
-
 
 app.get('/states', function(req, res){
    getCollectionDocuments('States', req, res);
@@ -219,6 +205,22 @@ function getCollectionDocuments(collectionName, req, res){
             res.send(JSON.stringify(docs));
         });
     })
+}
+
+function flushRedis(key){
+    if (key) {
+        client.keys(key + '*', function (err, keys) {
+            if (err) return console.log(err);
+            let len = keys.length;
+            for (var i = 0; i < len; i++) {
+                console.log('deleted: ' + keys[i]);
+                client.del(keys[i]);
+            }
+        });
+    } else {
+        console.log('flushed all redis data');
+        client.FLUSHALL();
+    }
 }
 
 // All remaining requests return the React app, so it can handle routing.

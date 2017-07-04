@@ -1,16 +1,15 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { VictoryChart, VictoryLabel, VictoryBar, VictoryTheme, VictoryAxis  } from 'victory';
 import MenuItem from 'material-ui/MenuItem';
 import SelectField from 'material-ui/SelectField';
 import IconButton from 'material-ui/IconButton';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import FontIcon from 'material-ui/FontIcon';
-
 import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer }  from 'recharts';
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -23,7 +22,9 @@ class RealEstateGraph extends Component {
             dateRange: [],
             metric: 'All',
             modalOpen: false,
-            modalBody: 'Beepbepp'
+            modalBody: 'Beepbepp',
+            aggregator: 'avg',
+            tableKey: 1
         };
 
         this.getPriceToRentData = this.getTableMetricData.bind(this);
@@ -35,11 +36,22 @@ class RealEstateGraph extends Component {
         this.getTableMetricData();
     }
 
-    handleDateChange = (event, type) => {
-        event.persist()
-        const value = event.target.innerText;
-        this.setState({[type]: value});
+    handleDateChange = (value, type) => {
+        if(type === 'start'){
+            this.setState({startDate: value}, function(){
+                this.getTableMetricData();
+            });
+        }
+        if(type === 'end'){
+            this.setState({endDate: value}, function(){
+                this.getTableMetricData();
+            });
+        }     
     };
+
+    handleAggregateChange = (event, index, value) => {
+        this.setState({ aggregator: value});
+    }
 
     handleMetricChange = (event, index, value) =>{
         this.setState({ metric: value }, function(){
@@ -55,20 +67,26 @@ class RealEstateGraph extends Component {
         this.setState({modalOpen: false})
     }; 
 
-    getDateRange(){
+    getDateRange = () => {
         axios.get('/az-zip-metrics/dates')
         .then(function (response) {
-            var data = response.data;
+            let data = response.data;
+            let len = data.dates.length;
+            
+            data.dates.sort();
+
             this.setState({
-                dateRange: data.dates
+                dateRange: data.dates,
+                endDate: data.dates[len - 1]
             });
+
         }.bind(this))
         .catch(function (error) {
             console.log(error);
         });
     }
 
-    getTableMetricData(){
+    getTableMetricData = () =>{
         axios.get('/az-zip-metrics/table', {
             params: {
                 StartDate: this.state.startDate,
@@ -109,8 +127,9 @@ class RealEstateGraph extends Component {
         });
     }
 
-
     render() {
+        let _this = this;
+
         const columns = [{
             Header: 'Zip',
             accessor: 'RegionName',
@@ -120,13 +139,14 @@ class RealEstateGraph extends Component {
                         style={{float: 'right'}}
                         value={value}
                     >
-                        <FontIcon className="material-icons" style={{marginTop: '5rem'}}>home</FontIcon>
+                        <FontIcon className='material-icons' style={{marginTop: '5rem'}}>home</FontIcon>
                     </IconButton>
                 </span>
         }, 
         {
             Header: 'City',
             accessor: 'City',
+            aggregate: vals => vals[0],
             PivotValue: ({value}) => <span style={{color: 'darkblue'}}>{value}</span>
         }, 
         {
@@ -137,14 +157,68 @@ class RealEstateGraph extends Component {
         }, 
         {
             Header: 'Metric', 
-            accessor: 'Metric'
+            accessor: 'Metric',
+            aggregate: vals =>{
+                var unique = vals.filter((v, i, a) => a.indexOf(v) === i);
+                return unique.join(', ');
+            }
         },
         {
             Header: 'Value',
             accessor: 'Value',
-            aggregate: vals => _.round(_.mean(vals)),
+            aggregate: (vals, rows) => {
+                if(_this.state.aggregator === 'avg'){
+                    let avg = _.round(_.mean(vals))
+                    return {
+                        number: avg,
+                        template: avg  + ' (avg)'
+                    };
+                }
+                if(_this.state.aggregator === 'percent'){
+                    let rowLen = rows.length;
+                    let sorted = rows.sort((a, b) => a.Date.localeCompare(b.Date));
+                    let startDate = sorted[0].Date;
+                    let endDate = sorted[rowLen - 1].Date;
+
+                    let startObjs = rows.filter(function(obj){
+                        return obj.Date === startDate;
+                    });
+
+                    let endObjs = rows.filter(function(obj){
+                        return obj.Date === endDate;
+                    });
+
+                    let startVal = startObjs.reduce((a, b) => ( a + b.Value), 0);
+                    let endVal = endObjs.reduce((a, b) => ( a + b.Value), 0);
+
+                    let percent = Math.round(((endVal - startVal) / startVal)  * 100);
+
+                    if(isNaN(percent)){
+                        percent = 0;
+                    }
+
+                    if(!isFinite(percent)){
+                        percent = Math.round(endVal - startVal)
+                    };
+
+                    let t = 'increase';
+
+                    if(percent <=0){
+                        t = 'decrease';
+                    }
+
+                    return {
+                        number: percent,
+                        template: percent + ' (% ' + t + ')'
+                    };
+                }
+            },
+            sortMethod: (a, b) => {
+                return a.number > b.number ? 1 : -1;
+            },
             Aggregated: row => {
-                return <span>{row.value} (avg)</span>
+                let color = row.value.number <= 0 ? 'red' : 'blue';
+                return <span style={{color: color}}>{row.value.template}</span>
             }
         },
         {
@@ -152,30 +226,72 @@ class RealEstateGraph extends Component {
             accessor: 'Date',
             PivotValue: ({value}) => <span style={{color: 'darkblue'}}>{value}</span>
         }];
+
         const modalActions = [
             <FlatButton
-                label="Cancel"
+                label='Cancel'
                 primary={true}
                 onTouchTap={this.handleModalClose}
             />
         ]
+
         return (         
-            <div className="height100"> 
+            <div className='height100'> 
                 <SelectField
-                    floatingLabelText="Metric Select"
+                    floatingLabelText='Metric Select'
                     value={this.state.metric}
                     onChange={this.handleMetricChange}
                     style={{
                         marginLeft: '15px'
                     }}
                 >
-                    <MenuItem value={"All"} primaryText="All" />
-                    <MenuItem value={"ZHVI"} primaryText="Home Value Index" />
-                    <MenuItem value={"IncreasingValues"} primaryText="Increasing Value" />
-                    <MenuItem value={"PriceToRent"} primaryText="Price To Rent" />
-                    <MenuItem value={"Turnover"} primaryText="Turnover" />
+                    <MenuItem value={'All'} primaryText='All' />
+                    <MenuItem value={'ZHVI'} primaryText='Home Value Index' />
+                    <MenuItem value={'IncreasingValues'} primaryText='Increasing Value' />
+                    <MenuItem value={'PriceToRent'} primaryText='Price To Rent' />
+                    <MenuItem value={'Turnover'} primaryText='Turnover' />
+                </SelectField>
+                <SelectField
+                    floatingLabelText='Start Date'
+                    value={this.state.startDate}
+                    style={{
+                        marginLeft: '20px'
+                    }}
+                >
+                    {this.state.dateRange.map((obj, index) => (
+                        <MenuItem key={index} 
+                            value={obj} 
+                            primaryText={obj} 
+                            onTouchTap={() => this.handleDateChange(obj, 'start')}/>
+                    ))}
+                </SelectField>
+                <SelectField
+                    floatingLabelText='End Date'
+                    value={this.state.endDate}
+                    style={{
+                        marginLeft: '20px'
+                    }}
+                >
+                    {this.state.dateRange.map((obj, index) => (
+                        <MenuItem key={index} 
+                            value={obj} 
+                            primaryText={obj} 
+                            onTouchTap={() => this.handleDateChange(obj, 'end')}/>
+                    ))}
+                </SelectField>
+                <SelectField
+                    floatingLabelText='Aggregator'
+                    value={this.state.aggregator}
+                    onChange={this.handleAggregateChange}
+                    style={{
+                        marginLeft: '20px'
+                    }}
+                >
+                    <MenuItem value={"avg"} primaryText={"Average"}/>
+                    <MenuItem value={"percent"} primaryText={"% Change"}/>
                 </SelectField>
                 <ReactTable
+                    key={this.state.tableKey}
                     data={this.state.tableData}
                     columns={columns}
                     pivotBy={['RegionName']}
@@ -193,34 +309,24 @@ class RealEstateGraph extends Component {
                     }}
                 />
                 <Dialog
-                    title="Zip Detail"
+                    title='Zip Detail'
                     modal={false}
                     actions={modalActions}
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
                 >
-                    <VictoryChart
-                        domainPadding={20}
-                        animate={{ duration: 1000, onLoad: { duration: 1000 }, onEnter: { duration: 500, before: () => ({ y: 0 }) } }}
-                    >
-                        <VictoryBar
-                            /*labelComponent={<VictoryLabel angle={90} />}*/
+                    <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={600}>
+                        <LineChart 
                             data={this.state.graphData}
-                            x="Date"
-                            y="Value"
-                            style={{
-                                data: { stroke: (d, active) => active ? "green" : "black" }
-                            }}
-                            padding={70}
-                        />
-                        <VictoryAxis
-                            tickCount={5}
-                            tickLabelComponent = {<VictoryLabel angle={70}/>}
-                        />
-                        <VictoryAxis dependentAxis
-                            tickCount={5}
-                        />
-                    </VictoryChart>
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <XAxis dataKey='Date' />
+                            <YAxis domain={['dataMin', 'auto']}/>
+                            <CartesianGrid strokeDasharray='3 3' />
+                            <Tooltip />
+                            <Legend />
+                            <Line type='monotone' dataKey='Value' stroke='#8884d8'/>
+                        </LineChart>
+                    </ResponsiveContainer>
                 </Dialog>
             </div>
         );

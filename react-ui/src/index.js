@@ -18,8 +18,9 @@ render((
         <Route path="/" component={Layout}>
             <Route path="/testing" component={Testing} />
             <Route path="/admin" component={Admin} />
-            <Route path="/real-estate-tracker" component={RealEstateTracker} />
+            <Route path="/real-estate-map" component={RealEstateTracker} />
             <Route path="/real-estate-graph" component={RealEstateGraph} />
+            <Route path="/cache/flush"/>
         </Route>
     </Router>
 ), document.getElementById('root'))
