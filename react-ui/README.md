@@ -1,1 +1,2 @@
-Main code for site
+#Main code for site
+Mainly used for learning React and node
