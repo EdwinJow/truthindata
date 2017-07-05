@@ -1,4 +1,6 @@
-@import 'variables.scss';
+@import 'shared/variables';
+@import 'shared/helpers';
+@import 'shared/mixins';
 
 body,html,#root,#main-container,#content-container{
     height: 100%;
@@ -6,10 +8,6 @@ body,html,#root,#main-container,#content-container{
 
 body,html{
     overflow-y: hidden;
-}
-
-.height-100{
-    height: 100%;
 }
 
 #root{

@@ -10,7 +10,8 @@ import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer }  from 'recharts';
-import {orange500} from 'material-ui/styles/colors';
+import {orange500, indigo500} from 'material-ui/styles/colors';
+import GenericLoader from './shared/GenericLoader.js';
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -25,7 +26,13 @@ class RealEstateGraph extends Component {
             modalOpen: false,
             modalBody: 'Beepbepp',
             aggregator: 'avg',
-            tableKey: 1
+            tableKey: 1,
+            loaderOpen: true,
+            regionDetails: {
+                stateName: 'AZ',
+                city: null,
+                zip: null
+            }
         };
 
         this.getPriceToRentData = this.getTableMetricData.bind(this);
@@ -88,6 +95,7 @@ class RealEstateGraph extends Component {
     }
 
     getTableMetricData = () =>{
+        this.setState({ loaderOpen: true });
         axios.get('/az-zip-metrics/table', {
             params: {
                 StartDate: this.state.startDate,
@@ -99,20 +107,32 @@ class RealEstateGraph extends Component {
             var data = response.data;
             this.setState({
                 tableData: data.records
-            });
+            },
+                this.setState({
+                    loaderOpen: false
+                })
+            );
         }.bind(this))
         .catch(function (error) {
             console.log(error);
         });
     }
 
-    bindGraphByZip= (value) =>{
+    bindGraphByZip= (regionDetails) =>{
+        debugger;
+        this.setState({
+            regionDetails:{
+                stateName: regionDetails.stateName,
+                zip: regionDetails.zip,
+                city: regionDetails.city
+            }
+        });
         axios.get('/az-zip-metrics/graph', {
             params: {
                 StartDate: this.state.startDate,
                 EndDate: this.state.endDate,
                 Metric: this.state.metric,
-                Zip: value
+                Zip: regionDetails.zip
             }
         })
         .then(function (response) {
@@ -120,7 +140,6 @@ class RealEstateGraph extends Component {
             this.setState({
                 graphData: data.records
             });        
-            debugger;
             this.handleModalOpen();
         }.bind(this))
         .catch(function (error) {
@@ -134,15 +153,23 @@ class RealEstateGraph extends Component {
         const columns = [{
             Header: 'Zip',
             accessor: 'RegionName',
-            PivotValue: ({ value }) => <span>{value}
+            PivotValue: ({ value, row }) => {
+                let regionDetails = {
+                    stateName: row.State,
+                    city: row.City,
+                    zip: value
+                };
+                return <span>
+                    {value}
                     <IconButton
-                        onTouchTap={() => this.bindGraphByZip(value)}
+                        onTouchTap={() => this.bindGraphByZip(regionDetails)}
                         style={{float: 'right'}}
                         value={value}
                     >
                         <FontIcon className='material-icons' color={orange500} style={{marginTop: '5rem'}}>timeline</FontIcon>
                     </IconButton>
                 </span>
+            }
         }, 
         {
             Header: 'City',
@@ -229,6 +256,24 @@ class RealEstateGraph extends Component {
         }];
 
         const modalActions = [
+            <FlatButton
+                href={"https://www.trulia.com/" + this.state.regionDetails.stateName +"/" + this.state.regionDetails.city + "/"+ this.state.regionDetails.zip + "/"}
+                target="_blank"
+                label="Trulia"
+                labelStyle ={{color: indigo500}}
+                labelPosition="before"
+                secondary={true}            
+                icon={<FontIcon className='material-icons' color={indigo500}>home</FontIcon>}
+            />,
+            <FlatButton
+                href={"http://www.realtor.com/realestateandhomes-search/" + this.state.regionDetails.zip}
+                target="_blank"
+                label="Realtor"
+                labelPosition="before"
+                secondary={true}            
+                tooltip="Search at Realtor"
+                icon={<FontIcon className='material-icons'>home</FontIcon>}
+            />,
             <FlatButton
                 label='Cancel'
                 primary={true}
@@ -329,6 +374,7 @@ class RealEstateGraph extends Component {
                         </LineChart>
                     </ResponsiveContainer>
                 </Dialog>
+                <GenericLoader open={this.state.loaderOpen}/>
             </div>
         );
     }

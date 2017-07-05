@@ -25,7 +25,6 @@ class Layout extends Component {
                     <div id="header">
                         <h2>truth|in|data</h2>
                     </div>
-     
                     <div id="flex-container">
                         <Paper id="main-sidebar" zDepth={2}>
                             <Menu>
