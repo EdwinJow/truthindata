@@ -1,0 +1,9 @@
+export const primaryColorDark = '#455A64';
+export const primaryColor = '#607D8B';
+export const primaryColorLight = '#CFD8DC';
+export const primaryColorText = '#FFFFFF';
+export const primaryAccentColor = '#FF9800';
+export const secondaryAccentColor = '#00BCD4'
+export const primaryTextColor = '#212121';
+export const secondaryTextColor = '#757575';
+export const dividerColor = '#BDBDBD';

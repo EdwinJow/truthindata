@@ -89,6 +89,14 @@
 	-webkit-transform	: $deg;
 }
 
+@mixin translateX ($amount) {
+	transform			: translateX($amount);
+	-moz-transform		: translateX($amount);
+	-ms-transform		: translateX($amount);
+	-o-transform		: translateX($amount);
+	-webkit-transform	: translateX($amount);
+}
+
 @mixin scale ($multiplier) {
 	transform			: scale($multiplier);
 	-moz-transform		: scale($multiplier);

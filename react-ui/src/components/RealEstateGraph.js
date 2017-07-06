@@ -119,7 +119,6 @@ class RealEstateGraph extends Component {
     }
 
     bindGraphByZip= (regionDetails) =>{
-        debugger;
         this.setState({
             regionDetails:{
                 stateName: regionDetails.stateName,
@@ -136,10 +135,53 @@ class RealEstateGraph extends Component {
             }
         })
         .then(function (response) {
-            var data = response.data;
+            let data = response.data.records;
+            let mean = _.meanBy(data, function(o) { return o.Value; });
+            let dataLen = data.length;
+
+            if (this.state.metric !== 'All') {
+                let tableData = this.state.tableData;
+                let tableDataLen = tableData.length;
+                let hashMap = {};
+
+                tableData.filter(row => row.Metric = this.state.metric);
+
+                for (let i = 0; i < tableDataLen; i++) {
+                    let date = tableData[i].Date;
+                    let value = tableData[i].Value;
+
+                    if (!hashMap.hasOwnProperty([date])) {
+                        hashMap[date] = {
+                            total: value,
+                            occurances: 0
+                        };
+                    } else {
+                        hashMap[date]['total'] += value;
+                    }
+
+                    if(value){
+                        hashMap[date]['occurances']++;
+                    }
+                }
+
+                for (let i = 0; i < dataLen; i++) {
+                    let row = data[i];
+                    let total = hashMap[row.Date].total;
+                    let occurances = hashMap[row.Date].occurances;
+                    row.Avg = total / occurances;
+                }
+
+            } else {
+                for (let i = 0; i < dataLen; i++) {
+                    let row = data[i];
+                    row.Avg = mean;
+                }
+            }
+
             this.setState({
-                graphData: data.records
+                graphData: data
             });        
+            
             this.handleModalOpen();
         }.bind(this))
         .catch(function (error) {
@@ -260,7 +302,7 @@ class RealEstateGraph extends Component {
                 href={"https://www.trulia.com/" + this.state.regionDetails.stateName +"/" + this.state.regionDetails.city + "/"+ this.state.regionDetails.zip + "/"}
                 target="_blank"
                 label="Trulia"
-                labelStyle ={{color: indigo500}}
+                labelStyle={{color: indigo500}}
                 labelPosition="before"
                 secondary={true}            
                 icon={<FontIcon className='material-icons' color={indigo500}>home</FontIcon>}
@@ -271,7 +313,6 @@ class RealEstateGraph extends Component {
                 label="Realtor"
                 labelPosition="before"
                 secondary={true}            
-                tooltip="Search at Realtor"
                 icon={<FontIcon className='material-icons'>home</FontIcon>}
             />,
             <FlatButton
@@ -360,8 +401,9 @@ class RealEstateGraph extends Component {
                     actions={modalActions}
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
+                    contentStyle={{width: '90%', maxWidth: 'none'}}
                 >
-                    <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={600}>
+                    <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={400}>
                         <LineChart 
                             data={this.state.graphData}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -371,6 +413,7 @@ class RealEstateGraph extends Component {
                             <Tooltip />
                             <Legend />
                             <Line type='monotone' dataKey='Value' stroke='#8884d8'/>
+                            <Line type='monotone' dataKey='Avg' name={this.state.regionDetails.stateName + ' Avg'} stroke='#FF9800'/>
                         </LineChart>
                     </ResponsiveContainer>
                 </Dialog>

@@ -29,10 +29,10 @@ describe('<RealEstateGraph />', () => {
             persist: jest.fn()   
         }
 
-        wrapper.instance().handleDateChange(event, "startDate");
+        wrapper.instance().handleDateChange(event, 'start');
         expect(wrapper.instance().state.startDate).toEqual('2011-08');
 
-        wrapper.instance().handleDateChange(event, "endDate");
+        wrapper.instance().handleDateChange(event, 'end');
         expect(wrapper.instance().state.endDate).toEqual('2011-08');
     });
 });

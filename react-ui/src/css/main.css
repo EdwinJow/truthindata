@@ -22,17 +22,18 @@ body, html {
   flex-flow: column;
 }
 
-#root #main-container #header {
-  background-color: #455A64;
-  height: auto;
-  padding: 10px;
-  color: #FFFFFF;
+#root #main-container .main-app-bar button {
+  display: none !important;
 }
 
-#root #main-container #header h2 {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  color: #FF9800;
+@media (max-width: 667px) {
+  #root #main-container .main-app-bar button {
+    display: flex !important;
+  }
+}
+
+#root #main-container .main-app-bar button svg path {
+  fill: #00BCD4;
 }
 
 #root #main-container #flex-container {
@@ -42,6 +43,21 @@ body, html {
 
 #root #main-container #flex-container #main-sidebar {
   height: 100%;
+  width: 224px;
+  transition: margin-left 0.33s cubic-bezier(0, 0, 0.2, 1);
+  -moz-transition: margin-left 0.33s cubic-bezier(0, 0, 0.2, 1);
+  -webkit-transition: margin-left 0.33s cubic-bezier(0, 0, 0.2, 1);
+  -o-transition: margin-left 0.33s cubic-bezier(0, 0, 0.2, 1);
+}
+
+@media (max-width: 667px) {
+  #root #main-container #flex-container #main-sidebar {
+    margin-left: -224px;
+  }
+}
+
+#root #main-container #flex-container #main-sidebar.open {
+  margin-left: 0 !important;
 }
 
 #root #main-container #flex-container #content-container {

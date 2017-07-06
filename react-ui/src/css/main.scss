@@ -14,23 +14,38 @@ body,html{
     #main-container{
         display: flex;
         flex-flow: column;
-        #header {
-            background-color: $primary-color-dark;
-            height: auto;
-            padding: 10px;
-            color: $primary-color-text;
-            h2{
-                margin-top: 10px;
-                margin-bottom: 10px;
-                color: $accent-color;
+
+        .main-app-bar{
+            button{
+                display: none !important;
+                @media(max-width: $max-phone-width){
+                    display: flex !important;
+                }
+                svg{
+                    path{
+                        fill: $secondary-accent-color;
+                    }
+                }
             }
         }
+
         #flex-container{
             display: flex;
             height: 100%;
+
             #main-sidebar{
                 height: 100%;
+                width: 224px;
+                @include transition(margin-left, .33s, $ease-out);
+                @media(max-width: $max-phone-width){
+                    margin-left: -224px;
+                }
             }
+
+            #main-sidebar.open{
+                margin-left: 0 !important;
+            }
+            
             #content-container{
                 overflow: auto;
                 flex: 2;
