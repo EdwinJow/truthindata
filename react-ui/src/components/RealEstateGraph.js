@@ -32,6 +32,12 @@ class RealEstateGraph extends Component {
                 stateName: 'AZ',
                 city: null,
                 zip: null
+            },
+            demographics: {
+                PercentInLaborForce: null
+            },
+            household: {
+                TotalHousingUnits: null
             }
         };
 
@@ -94,6 +100,46 @@ class RealEstateGraph extends Component {
         });
     }
 
+    getZipDemographics = () => {
+        axios.get('/az-zip-metrics/demographics',{
+            params: {
+                Zip: this.state.regionDetails.zip
+            }
+        })
+        .then(function (response) {
+            let data = response.data;
+
+            console.log(data);
+
+            this.setState({
+                demographics: data
+            });
+        }.bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
+
+    getZipHousehold = () => {
+        axios.get('/az-zip-metrics/household',{
+            params: {
+                Zip: this.state.regionDetails.zip
+            }
+        })
+        .then(function (response) {
+            let data = response.data;
+
+            console.log(data);
+
+            this.setState({
+                household: data
+            });
+        }.bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
+
     getTableMetricData = () =>{
         this.setState({ loaderOpen: true });
         axios.get('/az-zip-metrics/table', {
@@ -118,14 +164,18 @@ class RealEstateGraph extends Component {
         });
     }
 
-    bindGraphByZip= (regionDetails) =>{
+    bindZipDrilldownDetails= (regionDetails) =>{
         this.setState({
             regionDetails:{
                 stateName: regionDetails.stateName,
                 zip: regionDetails.zip,
                 city: regionDetails.city
             }
+        }, () => {
+            this.getZipDemographics();
+            this.getZipHousehold();
         });
+
         axios.get('/az-zip-metrics/graph', {
             params: {
                 StartDate: this.state.startDate,
@@ -204,7 +254,7 @@ class RealEstateGraph extends Component {
                 return <span>
                     {value}
                     <IconButton
-                        onTouchTap={() => this.bindGraphByZip(regionDetails)}
+                        onTouchTap={() => this.bindZipDrilldownDetails(regionDetails)}
                         style={{float: 'right'}}
                         value={value}
                     >
@@ -396,13 +446,15 @@ class RealEstateGraph extends Component {
                     }}
                 />
                 <Dialog
-                    title='Zip Detail'
+                    title={'Zip Detail: ' + this.state.regionDetails.zip}
                     modal={false}
                     actions={modalActions}
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
                     contentStyle={{width: '90%', maxWidth: 'none'}}
-                >
+                >   
+                    <h3>{(this.state.demographics) ? 'Percent in Labor Force: ' + this.state.demographics.PercentInLaborForce : null}</h3>
+                    <h3>{(this.state.household) ? 'Total Housing Units: ' + this.state.household.TotalHousingUnits : null}</h3>
                     <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={400}>
                         <LineChart 
                             data={this.state.graphData}

@@ -41,6 +41,7 @@ app.get('/az-zip-metrics/dates', function(req, res){
     });
 });
 
+
 app.get('/az-zip-metrics/table', function(req, res){
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
@@ -126,8 +127,6 @@ app.get('/az-zip-metrics/graph', function(req, res){
                     });
                 }
 
-                console.log(util.inspect(request, false, null));
-
                 collection.find(request).toArray(function (err, docs) {
                     if (err) throw err;
                     db.close();
@@ -140,6 +139,93 @@ app.get('/az-zip-metrics/graph', function(req, res){
                     client.set(cacheKey, data, function (err) { if (err) throw err; });
                     res.send(data);
                 });
+            })
+        }
+    });   
+});
+
+
+app.get('/az-zip-metrics/demographics', function(req, res){
+    const zip = parseInt(req.query.Zip);
+    const cacheKey = 'az-zip-metrics-demographics-zip:' + zip;
+
+    if(zip === null){
+        res.send(null);
+    }
+
+    client.get(cacheKey, function (err, reply) {
+        if (err) throw err;
+        if (reply) {
+            console.log('metrics from redis')
+            res.send(reply);
+        } else {
+            flushRedis('az-zip-metrics-demographics-zip');
+            MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+                if (err) throw err;
+
+                let collection = db.collection('ArizonaZipDemographics');
+
+                let request = {
+                    Zip: zip
+                }
+
+                collection.findOne(request, function (err, doc) {
+                    if (err) throw err;
+                    db.close();
+                    res.set('Content-Type', 'application/json');
+
+                    if (!doc) {
+                        res.send({});
+                    }
+                    
+                    let data = JSON.stringify(doc);
+
+                    client.set(cacheKey, data, function (err) { if (err) throw err; });
+                    res.send(data);
+                });
+            })
+        }
+    });   
+});
+
+app.get('/az-zip-metrics/household', function(req, res){
+    const zip = parseInt(req.query.Zip);
+    const cacheKey = 'az-zip-metrics-household-zip:' + zip;
+
+    if(zip === null){
+        res.send(null);
+    }
+
+    client.get(cacheKey, function (err, reply) {
+        if (err) throw err;
+        if (reply) {
+            console.log('metrics from redis')
+            res.send(reply);
+        } else {
+            flushRedis('az-zip-metrics-households-zip');
+            MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+                if (err) throw err;
+
+                let collection = db.collection('ArizonaZipHousehold');
+
+                let request = {
+                    Zip: zip
+                }
+
+                collection.findOne(request, function (err, doc) {
+                    if (err) throw err;
+                    db.close();
+                    res.set('Content-Type', 'application/json');
+
+                    if(!doc){
+                        res.send({});
+                    }
+
+                    let data = JSON.stringify(doc);
+
+                    client.set(cacheKey, data, function (err) { if (err) throw err; });
+                    res.send(data);
+                });              
             })
         }
     });   
