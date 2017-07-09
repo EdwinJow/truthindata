@@ -11,6 +11,10 @@ var router = express.Router();
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
 
+// client.flushdb( function (err, succeeded) {
+//     console.log(succeeded); 
+// });
+
 app.get('/az-zip-metrics/dates', function(req, res){
     const cacheKey = 'az-zip-metrics-dates';
     client.get(cacheKey, function(err, reply){
@@ -68,8 +72,6 @@ app.get('/az-zip-metrics/table', function(req, res){
                 if(metric !== 'All'){
                     request.Metric = metric;
                 }
-
-                console.log(util.inspect(request, false, null));
 
                 collection.find(request).toArray(function (err, docs) {
                     if (err) throw err;
@@ -145,40 +147,64 @@ app.get('/az-zip-metrics/graph', function(req, res){
 });
 
 
-app.get('/az-zip-metrics/demographics', function(req, res){
-    const zip = parseInt(req.query.Zip);
-    const cacheKey = 'az-zip-metrics-demographics-zip:' + zip;
-
-    if(zip === null){
-        res.send(null);
-    }
+app.get('/az-zip-metrics/demographics-all', function(req, res){
+    const cacheKey = 'az-zip-metrics-demographics-all';
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
         if (reply) {
-            console.log('metrics from redis')
-            res.send(reply);
-        } else {
-            flushRedis('az-zip-metrics-demographics-zip');
+            console.log('metrics from redis all demographics')
+            return res.send(reply);
+        }      
+
+        MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+            if (err) throw err;
+
+            let collection = db.collection('ArizonaZipDemographics');
+
+            collection.find({}).toArray(function (err, docs) {
+                if (err) throw err;
+                db.close();
+                res.set('Content-Type', 'application/json');
+
+                let averages = docs.filter(o => o.Zip === 0)[0];
+
+                let data = JSON.stringify({
+                    data: docs,
+                    averages: averages
+                });
+
+                client.set(cacheKey, data, function (err) { if (err) throw err; });
+                res.send(data);
+            });
+        })      
+    });   
+});
+
+app.get('/az-zip-metrics/household-all', function(req, res){
+    const cacheKey = 'az-zip-metrics-household-all';
+
+    client.get(cacheKey, function (err, reply) {
+        if (err) throw err;
+        if (reply) {
+            console.log('metrics from redis all households')           
+            return res.send(reply);
+        } else {          
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
-                let collection = db.collection('ArizonaZipDemographics');
-
-                let request = {
-                    Zip: zip
-                }
-
-                collection.findOne(request, function (err, doc) {
+                let collection = db.collection('ArizonaZipHousehold');
+                
+                collection.find({}).toArray(function (err, docs) {
                     if (err) throw err;
                     db.close();
                     res.set('Content-Type', 'application/json');
+                    let averages = docs.filter(o => o.Zip === 0)[0];
 
-                    if (!doc) {
-                        res.send({});
-                    }
-                    
-                    let data = JSON.stringify(doc);
+                    let data = JSON.stringify({
+                        data: docs,
+                        averages: averages
+                    });
 
                     client.set(cacheKey, data, function (err) { if (err) throw err; });
                     res.send(data);
@@ -188,46 +214,85 @@ app.get('/az-zip-metrics/demographics', function(req, res){
     });   
 });
 
-app.get('/az-zip-metrics/household', function(req, res){
+app.get('/az-zip-metrics/demographics', function(req, res){
     const zip = parseInt(req.query.Zip);
-    const cacheKey = 'az-zip-metrics-household-zip:' + zip;
 
     if(zip === null){
         res.send(null);
     }
 
-    client.get(cacheKey, function (err, reply) {
-        if (err) throw err;
-        if (reply) {
-            console.log('metrics from redis')
-            res.send(reply);
-        } else {
-            flushRedis('az-zip-metrics-households-zip');
-            MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+    client.get('az-zip-metrics-demographics-all', function(err, reply){
+        if(err) throw err;
+
+        if(reply){
+            let data = JSON.parse(reply).data.filter(row => row.Zip === zip);
+            console.log('metrics from redis single demographic');
+            return res.send(JSON.stringify(data[0]));
+        }
+
+        MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+            if (err) throw err;
+
+            let collection = db.collection('ArizonaZipDemographics');
+
+            let request = {
+                Zip: zip
+            }
+
+            collection.findOne(request, function (err, doc) {
                 if (err) throw err;
+                db.close();
+                res.set('Content-Type', 'application/json');
 
-                let collection = db.collection('ArizonaZipHousehold');
+                if (!doc) {
+                    res.send({});
+                }
+                
+                let data = JSON.stringify(doc);
+                res.send(data);
+            });
+        })
+    });
+});
 
-                let request = {
-                    Zip: zip
+app.get('/az-zip-metrics/household', function(req, res){
+    const zip = parseInt(req.query.Zip);
+
+    if(zip === null){
+        res.send(null);
+    }
+
+   client.get('az-zip-metrics-household-all', function(err, reply){
+        if(err) throw err;
+
+        if(reply){
+            let data = JSON.parse(reply).data.filter(row => row.Zip === zip);
+            console.log('metrics from redis single zip');
+            return res.send(JSON.stringify(data[0]));
+        } 
+
+        MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+            if (err) throw err;
+
+            let collection = db.collection('ArizonaZipHousehold');
+
+            let request = {
+                Zip: zip
+            }
+
+            collection.findOne(request, function (err, doc) {
+                if (err) throw err;
+                db.close();
+                res.set('Content-Type', 'application/json');
+
+                if (!doc) {
+                    res.send({});
                 }
 
-                collection.findOne(request, function (err, doc) {
-                    if (err) throw err;
-                    db.close();
-                    res.set('Content-Type', 'application/json');
-
-                    if(!doc){
-                        res.send({});
-                    }
-
-                    let data = JSON.stringify(doc);
-
-                    client.set(cacheKey, data, function (err) { if (err) throw err; });
-                    res.send(data);
-                });              
-            })
-        }
+                let data = JSON.stringify(doc);
+                res.send(data);
+            });
+        });
     });   
 });
 

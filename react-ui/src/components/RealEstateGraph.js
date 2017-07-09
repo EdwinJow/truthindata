@@ -33,12 +33,16 @@ class RealEstateGraph extends Component {
                 city: null,
                 zip: null
             },
+            demographicsMetrics: [],
+            householdMetrics: [],
             demographics: {
                 PercentInLaborForce: null
             },
             household: {
                 TotalHousingUnits: null
-            }
+            },
+            demographicAverages: null,
+            householdAverages: null
         };
 
         this.getPriceToRentData = this.getTableMetricData.bind(this);
@@ -100,6 +104,36 @@ class RealEstateGraph extends Component {
         });
     }
 
+    getAllZipDemographics = () => {
+        axios.get('/az-zip-metrics/demographics-all')
+        .then(function (response) {
+            let data = response.data;
+            this.setState({
+                demographicsMetrics: data.data,
+                demographicAverages: data.averages
+            });
+        }.bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
+
+    getAllZipHouseholds = () => {
+        axios.get('/az-zip-metrics/household-all')
+        .then(function (response) {
+            let data = response.data;
+            this.setState({
+                householdMetrics: data.data,
+                householdAverages: data.averages
+            }, () => {
+                debugger;
+            });
+        }.bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
+
     getZipDemographics = () => {
         axios.get('/az-zip-metrics/demographics',{
             params: {
@@ -108,9 +142,6 @@ class RealEstateGraph extends Component {
         })
         .then(function (response) {
             let data = response.data;
-
-            console.log(data);
-
             this.setState({
                 demographics: data
             });
@@ -158,6 +189,8 @@ class RealEstateGraph extends Component {
                     loaderOpen: false
                 })
             );
+            this.getAllZipDemographics();
+            this.getAllZipHouseholds();
         }.bind(this))
         .catch(function (error) {
             console.log(error);
@@ -165,6 +198,7 @@ class RealEstateGraph extends Component {
     }
 
     bindZipDrilldownDetails= (regionDetails) =>{
+        this.setState({ loaderOpen: true });
         this.setState({
             regionDetails:{
                 stateName: regionDetails.stateName,
@@ -230,6 +264,8 @@ class RealEstateGraph extends Component {
 
             this.setState({
                 graphData: data
+            }, () => {
+                this.setState({ loaderOpen: false });
             });        
             
             this.handleModalOpen();
@@ -453,8 +489,16 @@ class RealEstateGraph extends Component {
                     onRequestClose={this.handleModalClose}
                     contentStyle={{width: '90%', maxWidth: 'none'}}
                 >   
-                    <h3>{(this.state.demographics) ? 'Percent in Labor Force: ' + this.state.demographics.PercentInLaborForce : null}</h3>
-                    <h3>{(this.state.household) ? 'Total Housing Units: ' + this.state.household.TotalHousingUnits : null}</h3>
+                    <h3>
+                        {(this.state.demographics) ? 'Percent in Labor Force: ' + this.state.demographics.PercentInLaborForce : null} 
+                        <hr/>
+                        {(this.state.demographicAverages) ? '% Labor Force State Avg: ' + this.state.demographicAverages.PercentInLaborForce.toPrecision(2) : null}
+                    </h3>
+                    <h3>
+                        {(this.state.household) ? 'Total Housing Units: ' + this.state.household.TotalHousingUnits : null} 
+                        <hr/>
+                        {(this.state.householdAverages) ? 'Total Housing Units State Avg: ' + Math.round(this.state.householdAverages.TotalHousingUnits) : null}
+                    </h3>
                     <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={400}>
                         <LineChart 
                             data={this.state.graphData}
