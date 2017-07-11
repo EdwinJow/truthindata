@@ -12,7 +12,9 @@ class AttributionFooter extends Component {
     render() {
         return (
             <div style={{width: '100%'}}>
-                {this.state.dataSources.map )}
+                {this.state.dataSources.map((obj, index) => 
+                    <span key={index}>{obj.Title}</span>
+                )}
             </div>
         );
     }
