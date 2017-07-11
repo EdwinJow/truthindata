@@ -12,6 +12,8 @@ import 'react-table/react-table.css'
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer }  from 'recharts';
 import {orange500, indigo500} from 'material-ui/styles/colors';
 import GenericLoader from './shared/GenericLoader.js';
+import {Tabs, Tab} from 'material-ui/Tabs';
+import SwipeableViews from 'react-swipeable-views';
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -25,9 +27,11 @@ class RealEstateGraph extends Component {
             metric: 'All',
             modalOpen: false,
             modalBody: 'Beepbepp',
+            metricModalOpen: false,
             aggregator: 'avg',
             tableKey: 1,
             loaderOpen: true,
+            slideIndex: 0,
             regionDetails: {
                 stateName: 'AZ',
                 city: null,
@@ -84,6 +88,20 @@ class RealEstateGraph extends Component {
     handleModalClose = () =>{
         this.setState({modalOpen: false})
     }; 
+
+    handleMetricModalOpen = () => {
+        this.setState({metricModalOpen: true})
+    }
+
+    handleMetricModalClose = () => {
+        this.setState({metricModalOpen: false})
+    }
+
+    handleTabChange = (value) => {
+        this.setState({
+            slideIndex: value,
+        });
+    };
 
     getDateRange = () => {
         axios.get('/az-zip-metrics/dates')
@@ -408,8 +426,26 @@ class RealEstateGraph extends Component {
             />
         ]
 
+        const metricModalActions = [
+            <FlatButton
+                label='Cancel'
+                primary={true}
+                onTouchTap={this.handleMetricModalClose}
+            />
+        ]
+
         return (         
             <div className='height100'> 
+                <IconButton
+                    tooltip="Metric Detail"
+                    primary={true}
+                    onTouchTap={this.handleMetricModalOpen}
+                    iconClassName="material-icons"
+                    style={{ float: 'left' }}
+                    tooltipPosition="bottom-right"
+                >
+                    select_all
+                </IconButton>
                 <SelectField
                     floatingLabelText='Metric Select'
                     value={this.state.metric}
@@ -489,6 +525,7 @@ class RealEstateGraph extends Component {
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
                     contentStyle={{width: '90%', maxWidth: 'none'}}
+                    autoScrollBodyContent={true}
                 >   
                     {/*<h3>
                         {(this.state.demographics) ? 'Percent in Labor Force: ' + this.state.demographics.PercentInLaborForce : null} 
@@ -514,6 +551,51 @@ class RealEstateGraph extends Component {
                         </LineChart>
                     </ResponsiveContainer>
                 </Dialog>
+                <Dialog
+                    title={'Metric Details'}
+                    modal={false}
+                    actions={metricModalActions}
+                    open={this.state.metricModalOpen}
+                    onRequestClose={this.handleMetricModalClose}
+                    contentStyle={{width: '100%', maxWidth: 'none'}}
+                    autoScrollBodyContent={true}
+                >   
+                <Tabs
+                    onChange={this.handleTabChange}
+                    value={this.state.slideIndex}
+                >
+                    <Tab label="Home Value Index" value={0} />
+                    <Tab label="Home Value Rental Index" value={1} />
+                    <Tab label="Increasing Value" value={2} />
+                    <Tab label="Price To Rent" value={3} />
+                    <Tab label="Turnover" value={4} />
+                </Tabs>
+                    <SwipeableViews
+                        index={this.state.slideIndex}
+                        onChangeIndex={this.handleTabChange}
+                    >
+                    <div>
+                        <h2>ZHVI</h2>
+                        Median estimated home value for all homes of these types within a region.
+                    </div>
+                    <div>
+                        <h2>ZHVR</h2>
+                        Median of the estimated rent price for all homes and apartments in a given region.
+                    </div>
+                    <div>
+                        <h2>IncreasingValues</h2>
+                        The percentage of homes in an given region with values that have increased in the past year.
+                    </div>
+                    <div>
+                        <h2>PriceToRent</h2>
+                        This ratio is first calculated at the individual home level, where the estimated home value is divided by 12 times its estimated monthly rent price. The the median of all home-level price-to-rent ratios for a given region is then calculated.
+                    </div>
+                    <div>
+                        <h2>Turnover</h2>
+                        The percentage of all homes in a given area that sold in the past 12 months.
+                    </div>
+                    </SwipeableViews>
+                </Dialog>          
                 <GenericLoader open={this.state.loaderOpen}/>
             </div>
         );
