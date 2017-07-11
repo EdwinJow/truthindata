@@ -419,7 +419,8 @@ class RealEstateGraph extends Component {
                     }}
                 >
                     <MenuItem value={'All'} primaryText='All' />
-                    <MenuItem value={'ZHVI'} primaryText='Home Value Index' />
+                    <MenuItem value={'ZHVI'} primaryText='Home Value Index' />              
+                    <MenuItem value={'ZHVR'} primaryText='Home Value Rental Index' />
                     <MenuItem value={'IncreasingValues'} primaryText='Increasing Value' />
                     <MenuItem value={'PriceToRent'} primaryText='Price To Rent' />
                     <MenuItem value={'Turnover'} primaryText='Turnover' />
