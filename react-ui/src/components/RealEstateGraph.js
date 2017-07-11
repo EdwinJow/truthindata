@@ -489,7 +489,7 @@ class RealEstateGraph extends Component {
                     onRequestClose={this.handleModalClose}
                     contentStyle={{width: '90%', maxWidth: 'none'}}
                 >   
-                    <h3>
+                    {/*<h3>
                         {(this.state.demographics) ? 'Percent in Labor Force: ' + this.state.demographics.PercentInLaborForce : null} 
                         <hr/>
                         {(this.state.demographicAverages) ? '% Labor Force State Avg: ' + this.state.demographicAverages.PercentInLaborForce.toPrecision(2) : null}
@@ -498,7 +498,7 @@ class RealEstateGraph extends Component {
                         {(this.state.household) ? 'Total Housing Units: ' + this.state.household.TotalHousingUnits : null} 
                         <hr/>
                         {(this.state.householdAverages) ? 'Total Housing Units State Avg: ' + Math.round(this.state.householdAverages.TotalHousingUnits) : null}
-                    </h3>
+                    </h3>*/}
                     <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={400}>
                         <LineChart 
                             data={this.state.graphData}
