@@ -14,6 +14,7 @@ import {orange500, indigo500} from 'material-ui/styles/colors';
 import GenericLoader from './shared/GenericLoader.js';
 import {Tabs, Tab} from 'material-ui/Tabs';
 import SwipeableViews from 'react-swipeable-views';
+import ModalDemographics from './ModalDemographics.js'
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -32,6 +33,7 @@ class RealEstateGraph extends Component {
             tableKey: 1,
             loaderOpen: true,
             slideIndex: 0,
+            zipDetailTab: 'metric-graph',
             regionDetails: {
                 stateName: 'AZ',
                 city: null,
@@ -39,14 +41,150 @@ class RealEstateGraph extends Component {
             },
             demographicsMetrics: [],
             householdMetrics: [],
+            demographicAverages: {
+                Zip : 85003,
+                PercentInLaborForce : 55.2,
+                PercentUnemployed : 4.7,
+                PercentManagementJobs : 51.2,
+                PercentServiceJobs : 15.6,
+                PercentSalesOfficeJobs : 21.4,
+                PercentConstructionJobs : 3.5,
+                PercentManufacturingTransportationJobs : 8.4,
+                TotalHouseholds : 3945,
+                PercentHouseholdIncome25k : 34.4,
+                PercentHouseholdIncome25k50k : 20.7,
+                PercentHouseholdIncome50k75k : 10.9,
+                PercentHouseholdIncome75k100k : 8,
+                PercentHouseholdIncome100k150k : 15.5,
+                PercentHouseholdIncome150k200k : 5.3,
+                PercentHouseholdIncome200k : 5,
+                TotalHouseholdMedianIncome : 41038,
+                TotalHouseholdMeanIncome : 67808,
+                PerCapitaIncome : 30082,
+                PercentHealthInsured : 82.8,
+                PercentNonHealthInsured : 17.2,
+                PercentFamiliesBelowPovertyLevel : 24.4,
+                PercentPeopleBelowPovertyLevel : 31.5,
+                TotalPop18to24 : 848,
+                Total18to24LessThanHighSchool : 375,
+                Percent18to24LessThanHighSchool : 44.2,
+                Total18to24HighSchoolGraduate : 219,
+                Percent18to24HighSchoolGraduate : 25.8,
+                Total18to24SomeCollegeOrAssociates : 153,
+                Percent18to24SomeCollegeOrAssociates : 18,
+                Total18to24BachelorsOrHigher : 101,
+                Percent18to24BachelorsOrHigher : 11.9,
+                TotalPop25Older : 7096,
+                TotalPop25OlderLessThanHighSchool : 1447,
+                PercentPop25OlderLessThanHighSchool : 20.4,
+                TotalPop25OlderHighSchoolGraduate : 1366,
+                PercentPop25OlderHighschoolGraduate : 19.3,
+                TotalPop25OlderSomeCollege : 1706,
+                PercentPop25OlderSomeCollege : 24,
+                TotalPop25OlderAssociates : 281,
+                PercentPop25OlderAssociates : 4,
+                TotalPop25OlderBachelors : 1258,
+                PercentPop25OlderBachelors : 17.7,
+                TotalPop25OlderGraduates : 1038,
+                PercentPop25OlderGraduates : 14.6,
+                TotalPercentHighschoolOrHigher : 79.6,
+                TotalPercentBachelorsOrHigher : 32.4,
+                Year : 2015
+            },
             demographics: {
-                PercentInLaborForce: null
+                Zip : 85003,
+                PercentInLaborForce : 55.2,
+                PercentUnemployed : 4.7,
+                PercentManagementJobs : 51.2,
+                PercentServiceJobs : 15.6,
+                PercentSalesOfficeJobs : 21.4,
+                PercentConstructionJobs : 3.5,
+                PercentManufacturingTransportationJobs : 8.4,
+                TotalHouseholds : 3945,
+                PercentHouseholdIncome25k : 34.4,
+                PercentHouseholdIncome25k50k : 20.7,
+                PercentHouseholdIncome50k75k : 10.9,
+                PercentHouseholdIncome75k100k : 8,
+                PercentHouseholdIncome100k150k : 15.5,
+                PercentHouseholdIncome150k200k : 5.3,
+                PercentHouseholdIncome200k : 5,
+                TotalHouseholdMedianIncome : 41038,
+                TotalHouseholdMeanIncome : 67808,
+                PerCapitaIncome : 30082,
+                PercentHealthInsured : 82.8,
+                PercentNonHealthInsured : 17.2,
+                PercentFamiliesBelowPovertyLevel : 24.4,
+                PercentPeopleBelowPovertyLevel : 31.5,
+                TotalPop18to24 : 848,
+                Total18to24LessThanHighSchool : 375,
+                Percent18to24LessThanHighSchool : 44.2,
+                Total18to24HighSchoolGraduate : 219,
+                Percent18to24HighSchoolGraduate : 25.8,
+                Total18to24SomeCollegeOrAssociates : 153,
+                Percent18to24SomeCollegeOrAssociates : 18,
+                Total18to24BachelorsOrHigher : 101,
+                Percent18to24BachelorsOrHigher : 11.9,
+                TotalPop25Older : 7096,
+                TotalPop25OlderLessThanHighSchool : 1447,
+                PercentPop25OlderLessThanHighSchool : 20.4,
+                TotalPop25OlderHighSchoolGraduate : 1366,
+                PercentPop25OlderHighschoolGraduate : 19.3,
+                TotalPop25OlderSomeCollege : 1706,
+                PercentPop25OlderSomeCollege : 24,
+                TotalPop25OlderAssociates : 281,
+                PercentPop25OlderAssociates : 4,
+                TotalPop25OlderBachelors : 1258,
+                PercentPop25OlderBachelors : 17.7,
+                TotalPop25OlderGraduates : 1038,
+                PercentPop25OlderGraduates : 14.6,
+                TotalPercentHighschoolOrHigher : 79.6,
+                TotalPercentBachelorsOrHigher : 32.4,
+                Year : 2015
+            },
+            householdAverages: {
+                TotalHousingUnits: 7139,
+                PercentHousingUnitsOccupied: 73.9113581133477,
+                PercentHousingUnitsVacant: 24.1133333217951,
+                PercentOwnerOccupied: 66.6017284662635,
+                PercentRenterOccupied: 30.9298765241364,
+                PercentValue100k: 34.7597530064759,
+                PercentValue100k200k: 30.0266666385863,
+                PercentValue200k300k: 15.0106172981086,
+                PercentValue300k500k: 11.0681481527325,
+                PercentValue500k1m: 4.4330864213867,
+                PercentValue1m: 1.24098765724971,
+                MedianHouseholdValue: 151163,
+                TotalRentalHouseholds: 2107,
+                PercentRent500: 18.3809876479116,
+                PercentRent500to1000: 42.6345679200726,
+                PercentRent1500to2000: 65,
+                PercentRent2000to2500: 32,
+                PercentRent2500to3000: 23,
+                PercentRent3000: 23,
+                Year: 2015
             },
             household: {
-                TotalHousingUnits: null
-            },
-            demographicAverages: null,
-            householdAverages: null
+                TotalHousingUnits: 7139,
+                PercentHousingUnitsOccupied: 73.9113581133477,
+                PercentHousingUnitsVacant: 24.1133333217951,
+                PercentOwnerOccupied: 66.6017284662635,
+                PercentRenterOccupied: 30.9298765241364,
+                PercentValue100k: 34.7597530064759,
+                PercentValue100k200k: 30.0266666385863,
+                PercentValue200k300k: 15.0106172981086,
+                PercentValue300k500k: 11.0681481527325,
+                PercentValue500k1m: 4.4330864213867,
+                PercentValue1m: 1.24098765724971,
+                MedianHouseholdValue: 151163,
+                TotalRentalHouseholds: 2107,
+                PercentRent500: 18.3809876479116,
+                PercentRent500to1000: 42.6345679200726,
+                PercentRent1500to2000: 65,
+                PercentRent2000to2500: 32,
+                PercentRent2500to3000: 23,
+                PercentRent3000: 23,
+                Year: 2015
+            }
         };
 
         this.getPriceToRentData = this.getTableMetricData.bind(this);
@@ -97,11 +235,17 @@ class RealEstateGraph extends Component {
         this.setState({metricModalOpen: false})
     }
 
-    handleTabChange = (value) => {
+    handleMetricDefinitionTabChange = (value) => {
         this.setState({
             slideIndex: value,
         });
     };
+
+    handleZipDetailTabChange = (value) => {
+        this.setState({
+            zipDetailTab: value
+        });
+    }
 
     getDateRange = () => {
         axios.get('/az-zip-metrics/dates')
@@ -143,8 +287,6 @@ class RealEstateGraph extends Component {
             this.setState({
                 householdMetrics: data.data,
                 householdAverages: data.averages
-            }, () => {
-                debugger;
             });
         }.bind(this))
         .catch(function (error) {
@@ -163,6 +305,7 @@ class RealEstateGraph extends Component {
             this.setState({
                 demographics: data
             });
+            console.log(data);
         }.bind(this))
         .catch(function (error) {
             console.log(error);
@@ -177,9 +320,6 @@ class RealEstateGraph extends Component {
         })
         .then(function (response) {
             let data = response.data;
-
-            console.log(data);
-
             this.setState({
                 household: data
             });
@@ -438,7 +578,6 @@ class RealEstateGraph extends Component {
             <div className='height100'> 
                 <IconButton
                     tooltip="Metric Detail"
-                    primary={true}
                     onTouchTap={this.handleMetricModalOpen}
                     iconClassName="material-icons"
                     style={{ float: 'left' }}
@@ -524,32 +663,37 @@ class RealEstateGraph extends Component {
                     actions={modalActions}
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
-                    contentStyle={{width: '90%', maxWidth: 'none'}}
+                    contentStyle={{width: '90vw', maxWidth: 'none', height:'90vh', maxHeight: 'none'}}
                     autoScrollBodyContent={true}
                 >   
-                    {/*<h3>
-                        {(this.state.demographics) ? 'Percent in Labor Force: ' + this.state.demographics.PercentInLaborForce : null} 
-                        <hr/>
-                        {(this.state.demographicAverages) ? '% Labor Force State Avg: ' + this.state.demographicAverages.PercentInLaborForce.toPrecision(2) : null}
-                    </h3>
-                    <h3>
-                        {(this.state.household) ? 'Total Housing Units: ' + this.state.household.TotalHousingUnits : null} 
-                        <hr/>
-                        {(this.state.householdAverages) ? 'Total Housing Units State Avg: ' + Math.round(this.state.householdAverages.TotalHousingUnits) : null}
-                    </h3>*/}
-                    <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={400}>
-                        <LineChart 
-                            data={this.state.graphData}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                            <XAxis dataKey='Date' />
-                            <YAxis domain={['dataMin', 'auto']}/>
-                            <CartesianGrid strokeDasharray='3 3' />
-                            <Tooltip />
-                            <Legend />
-                            <Line type='monotone' dataKey='Value' stroke='#8884d8'/>
-                            <Line type='monotone' dataKey='Avg' name={this.state.regionDetails.stateName + ' Avg'} stroke='#FF9800'/>
-                        </LineChart>
-                    </ResponsiveContainer>
+                    <Tabs
+                        value={this.state.zipDetailTab}
+                        onChange={this.handleZipDetailTabChange}
+                    >
+                        <Tab label="Metric Graph" value="metric-graph">
+                            <ResponsiveContainer width='100%' height='100%' minHeight={400} minWidth={400}>
+                                <LineChart 
+                                    data={this.state.graphData}
+                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                    <XAxis dataKey='Date' />
+                                    <YAxis domain={['dataMin', 'auto']}/>
+                                    <CartesianGrid strokeDasharray='3 3' />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Line type='monotone' dataKey='Value' stroke='#8884d8'/>
+                                    <Line type='monotone' dataKey='Avg' name={this.state.regionDetails.stateName + ' Avg'} stroke='#FF9800'/>
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </Tab>
+                        <Tab label="Zip Details" value="zip-details">
+                            <ModalDemographics 
+                                demographics={this.state.demographics} 
+                                demographicsAvg={this.state.demographicAverages}
+                                household={this.state.household}
+                                householdAverages={this.state.householdAverages}
+                            />
+                        </Tab>
+                    </Tabs>
                 </Dialog>
                 <Dialog
                     title={'Metric Details'}
@@ -561,7 +705,7 @@ class RealEstateGraph extends Component {
                     autoScrollBodyContent={true}
                 >   
                 <Tabs
-                    onChange={this.handleTabChange}
+                    onChange={this.handleMetricDefinitionTabChange}
                     value={this.state.slideIndex}
                 >
                     <Tab label="Home Value Index" value={0} />
@@ -572,7 +716,7 @@ class RealEstateGraph extends Component {
                 </Tabs>
                     <SwipeableViews
                         index={this.state.slideIndex}
-                        onChangeIndex={this.handleTabChange}
+                        onChangeIndex={this.handleMetricDefinitionTabChange}
                     >
                     <div>
                         <h2>ZHVI</h2>
