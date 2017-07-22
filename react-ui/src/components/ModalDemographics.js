@@ -51,6 +51,10 @@ class ModalDemographics extends Component {
                 if(education.includes(key)){
                     let name = key.replace('PercentPop25Older', '');
                     
+                    if(name === 'LessThanHighSchool'){
+                        name = '< Highschool'
+                    };
+                    
                     let obj = {
                         name: name,
                         value: dm[key]
