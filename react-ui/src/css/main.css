@@ -20,13 +20,14 @@ body, html {
 #root #main-container {
   display: flex;
   flex-flow: column;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root #main-container .main-app-bar button {
   display: none !important;
 }
 
-@media (max-width: 667px) {
+@media (max-width: 1025px) {
   #root #main-container .main-app-bar button {
     display: flex !important;
   }
@@ -50,7 +51,7 @@ body, html {
   -o-transition: margin-left 0.33s cubic-bezier(0, 0, 0.2, 1);
 }
 
-@media (max-width: 667px) {
+@media (max-width: 1025px) {
   #root #main-container #flex-container #main-sidebar {
     margin-left: -224px;
   }

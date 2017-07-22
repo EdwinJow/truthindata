@@ -14,11 +14,11 @@ body,html{
     #main-container{
         display: flex;
         flex-flow: column;
-
+        -webkit-overflow-scrolling: touch;
         .main-app-bar{
             button{
                 display: none !important;
-                @media(max-width: $max-phone-width){
+                @media(max-width: $max-ipad-width){
                     display: flex !important;
                 }
                 svg{
@@ -37,7 +37,7 @@ body,html{
                 height: 100%;
                 width: 224px;
                 @include transition(margin-left, .33s, $ease-out);
-                @media(max-width: $max-phone-width){
+                @media(max-width: $max-ipad-width){
                     margin-left: -224px;
                 }
             }

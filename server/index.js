@@ -11,9 +11,9 @@ var router = express.Router();
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
 
-// client.flushdb( function (err, succeeded) {
-//     console.log(succeeded); 
-// });
+client.flushdb( function (err, succeeded) {
+    console.log(succeeded); 
+});
 
 app.get('/az-zip-metrics/dates', function(req, res){
     const cacheKey = 'az-zip-metrics-dates';

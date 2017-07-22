@@ -15,6 +15,7 @@ import GenericLoader from './shared/GenericLoader.js';
 import {Tabs, Tab} from 'material-ui/Tabs';
 import SwipeableViews from 'react-swipeable-views';
 import ModalDemographics from './ModalDemographics.js'
+import '../css/real-estate-graph.css'
 
 class RealEstateGraph extends Component {
     constructor(props) {
@@ -663,8 +664,9 @@ class RealEstateGraph extends Component {
                     actions={modalActions}
                     open={this.state.modalOpen}
                     onRequestClose={this.handleModalClose}
-                    contentStyle={{width: '90vw', maxWidth: 'none', height:'90vh', maxHeight: 'none'}}
+                    contentStyle={{width: '100vw', maxWidth: 'none', height:'100vh', maxHeight: 'none', translateX:'0'}}
                     autoScrollBodyContent={true}
+                    className={'zip-detail-modal'}
                 >   
                     <Tabs
                         value={this.state.zipDetailTab}
@@ -690,7 +692,7 @@ class RealEstateGraph extends Component {
                                 demographics={this.state.demographics} 
                                 demographicsAvg={this.state.demographicAverages}
                                 household={this.state.household}
-                                householdAverages={this.state.householdAverages}
+                                householdAvg={this.state.householdAverages}
                             />
                         </Tab>
                     </Tabs>
