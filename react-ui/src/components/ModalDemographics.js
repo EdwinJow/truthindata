@@ -185,6 +185,13 @@ class ModalDemographics extends Component {
                             </span>
                             <small style={{ color: blueGray100 }}>&nbsp; avg: {dmAvg.PercentUnemployed.toFixed(2)}%</small>
                         </h4>
+                        <h4>
+                            Percent People Below Poverty Level:&nbsp;
+                            <span style={{ color: (dm.PercentFamiliesBelowPovertyLevel > dmAvg.PercentFamiliesBelowPovertyLevel ? red500 : blue500) }}>
+                                {dm.PercentFamiliesBelowPovertyLevel}%
+                            </span>
+                            <small style={{ color: blueGray100 }}>&nbsp; avg: {dmAvg.PercentFamiliesBelowPovertyLevel.toFixed(2)}%</small>
+                        </h4>
                     </div>
                     <div className="metric-containers">
                         <h2 style={{textAlign: 'center'}}>Housing</h2>
