@@ -10,7 +10,7 @@ import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer }  from 'recharts';
-import {orange500, indigo500, blue500} from 'material-ui/styles/colors';
+import {orange500, indigo500, blue500, blueGrey100} from 'material-ui/styles/colors';
 import GenericLoader from './shared/GenericLoader.js';
 import {Tabs, Tab} from 'material-ui/Tabs';
 import SwipeableViews from 'react-swipeable-views';
@@ -590,6 +590,11 @@ class RealEstateGraph extends Component {
 
         return (         
             <div className='height100'> 
+                <small style={{float:'right', color: {blueGrey100}, marginTop: '5px', marginRight: '5px', fontSize: '70%'}}>
+                    Data Sources:&nbsp;&nbsp;
+                    <a href="https://www.zillow.com/research/data/" style={{color: {blueGrey100}}} target="_blank">Zillow</a>&nbsp;&nbsp;
+                    <a href="https://factfinder.census.gov" style={{color: {blueGrey100}}}  target="_blank">US Census</a>
+                </small>
                 <IconButton
                     tooltip="Metric Detail"
                     onTouchTap={this.handleMetricModalOpen}
