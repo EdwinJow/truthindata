@@ -560,10 +560,10 @@ class RealEstateGraph extends Component {
                 href={"https://www.trulia.com/" + this.state.regionDetails.stateName +"/" + this.state.regionDetails.city + "/"+ this.state.regionDetails.zip + "/"}
                 target="_blank"
                 label="Trulia"
-                labelStyle={{color: indigo500}}
+                labelStyle={{color: orange500}}
                 labelPosition="before"
                 secondary={true}            
-                icon={<FontIcon className='material-icons' color={indigo500}>home</FontIcon>}
+                icon={<FontIcon className='material-icons' color={orange500}>home</FontIcon>}
             />,
             <FlatButton
                 href={"http://www.realtor.com/realestateandhomes-search/" + this.state.regionDetails.zip}
@@ -572,6 +572,14 @@ class RealEstateGraph extends Component {
                 labelPosition="before"
                 secondary={true}            
                 icon={<FontIcon className='material-icons'>home</FontIcon>}
+            />,
+            <FlatButton
+                href={"https://www.zillow.com/homes/for_sale/"+this.state.regionDetails.zip+"_rb/?fromHomePage=true&shouldFireSellPageImplicitClaimGA=false&fromHomePageTab=buy"}
+                target="_blank"
+                label="Zillow"
+                labelPosition="before"
+                labelStyle={{color: blue500}}         
+                icon={<FontIcon className='material-icons' color={blue500}>home</FontIcon>}
             />,
             <FlatButton
                 label='Cancel'
