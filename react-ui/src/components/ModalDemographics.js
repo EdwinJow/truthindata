@@ -27,7 +27,7 @@ class ModalDemographics extends Component {
         let education = ['PercentPop25OlderLessThanHighSchool', 'PercentPop25OlderSomeCollege', 'PercentPop25OlderAssociates', 'PercentPop25OlderBachelors', 'PercentPop25OlderGraduates', 'PercentPop25OlderHighschoolGraduate']
         let rental = ['PercentRent500','PercentRent500to1000','PercentRent1000to1500','PercentRent1500to2000','PercentRent2000to2500','PercentRent2500to3000', 'PercentRent3000']
 
-        for (var key in dm) {
+        for (let key in dm) {
             if (dm.hasOwnProperty(key)) {
                 if (householdIncome.includes(key)) {
                     let name = key.replace('PercentHouseholdIncome', '').replace('k', 'k ');
@@ -65,7 +65,7 @@ class ModalDemographics extends Component {
             }
         }
 
-        for (var key in hh) {
+        for (let key in hh) {
             if (hh.hasOwnProperty(key)) {
                 if (rental.includes(key)) {
                     let name = key.replace('PercentRent', '').replace('to', ' -> ');

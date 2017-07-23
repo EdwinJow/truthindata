@@ -10,7 +10,7 @@ import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer }  from 'recharts';
-import {orange500, indigo500} from 'material-ui/styles/colors';
+import {orange500, indigo500, blue500} from 'material-ui/styles/colors';
 import GenericLoader from './shared/GenericLoader.js';
 import {Tabs, Tab} from 'material-ui/Tabs';
 import SwipeableViews from 'react-swipeable-views';
@@ -356,8 +356,11 @@ class RealEstateGraph extends Component {
         });
     }
 
-    bindZipDrilldownDetails= (regionDetails) =>{
-        this.setState({ loaderOpen: true });
+    bindZipDrilldownDetails= (regionDetails, tabState) =>{
+        this.setState({ 
+            loaderOpen: true,
+            zipDetailTab: tabState
+         });
         this.setState({
             regionDetails:{
                 stateName: regionDetails.stateName,
@@ -437,7 +440,8 @@ class RealEstateGraph extends Component {
     render() {
         let _this = this;
 
-        const columns = [{
+        const columns = [
+        {
             Header: 'Zip',
             accessor: 'RegionName',
             PivotValue: ({ value, row }) => {
@@ -449,11 +453,18 @@ class RealEstateGraph extends Component {
                 return <span>
                     {value}
                     <IconButton
-                        onTouchTap={() => this.bindZipDrilldownDetails(regionDetails)}
+                        onTouchTap={() => this.bindZipDrilldownDetails(regionDetails, 'metric-graph')}
                         style={{float: 'right'}}
-                        value={value}
+                        tooltip='Metric Chart'
                     >
                         <FontIcon className='material-icons' color={orange500} style={{marginTop: '5rem'}}>timeline</FontIcon>
+                    </IconButton>
+                    <IconButton
+                        onTouchTap={() => this.bindZipDrilldownDetails(regionDetails, 'zip-details')}
+                        style={{float: 'right'}}
+                        tooltip='Zip Details'
+                    >
+                        <FontIcon className='material-icons' color={blue500} style={{marginTop: '5rem'}}>grain</FontIcon>
                     </IconButton>
                 </span>
             }
@@ -462,7 +473,9 @@ class RealEstateGraph extends Component {
             Header: 'City',
             accessor: 'City',
             aggregate: vals => vals[0],
-            PivotValue: ({value}) => <span style={{color: 'darkblue'}}>{value}</span>
+            PivotValue: ({value}) => <span style={{color: 'darkblue'}}>{value}</span>,
+            filterMethod: (filter, row) =>
+              row[filter.id].toLowerCase().includes(filter.value.toLowerCase())
         }, 
         {
             Header: 'State',

@@ -33,6 +33,10 @@
   }
 }
 
+.rt-td.rt-expandable.rt-pivot {
+  overflow: visible;
+}
+
 .zip-detail-modal {
   height: 100vh;
   width: 100vw;
