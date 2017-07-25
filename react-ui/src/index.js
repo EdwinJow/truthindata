@@ -5,9 +5,7 @@ import Admin from './components/Admin'
 import RealEstateTracker from './components/RealEstateTracker'
 import RealEstateGraph from './components/RealEstateGraph'
 import {render} from 'react-dom'
-var ReactGA = require('react-ga');
-ReactGA.initialize('UA-103157646-1');
-
+import ReactGA from 'react-ga';
 import './css/index.css';
 import {
     Router,
@@ -15,13 +13,15 @@ import {
     browserHistory
 } from 'react-router'
 
-function logPageView() {
-  ReactGA.set({ page: window.location.pathname + window.location.search });
-  ReactGA.pageview(window.location.pathname + window.location.search);
-}
+ReactGA.initialize('UA-103157646-1');
+
+browserHistory.listen(function (location) {
+    ReactGA.set({ page: location.pathname });
+    ReactGA.pageview(location.pathname);
+});
 
 render((
-    <Router history={browserHistory} onUpdate={logPageView}>
+    <Router history={browserHistory}>
         <Route path="/" component={Layout}>
             <Route path="/testing" component={Testing} />
             <Route path="/admin" component={Admin} />
