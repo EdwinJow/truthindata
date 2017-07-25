@@ -33,6 +33,13 @@
   }
 }
 
+.zip-detail-modal .zip-detail-modal-content {
+  height: 100vh !important;
+  width: 100vw !important;
+  margin: 0 !important;
+  top: 0 !important;
+}
+
 .rt-td.rt-expandable.rt-pivot {
   overflow: visible;
 }

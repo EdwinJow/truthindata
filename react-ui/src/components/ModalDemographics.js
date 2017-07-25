@@ -206,7 +206,22 @@ class ModalDemographics extends Component {
                             </span>
                             <small style={{ color: blueGray100 }}>&nbsp; avg: {hhAvg.TotalHousingUnits}</small>
                         </h4>
+                        <h4>
+                            Total Rental Units:&nbsp;
+                            <span style={{ color: (hh.TotalRentalHouseholds < hhAvg.TotalRentalHouseholds ? red500 : blue500) }}>
+                                {hh.TotalRentalHouseholds}
+                            </span>
+                            <small style={{ color: blueGray100 }}>&nbsp; avg: {hhAvg.TotalRentalHouseholds}</small>
+                        </h4>
+                        <h4>
+                            Median Household Value:&nbsp;
+                            <span style={{ color: (hh.MedianHouseholdValue < hhAvg.MedianHouseholdValue ? red500 : blue500) }}>
+                                {hh.MedianHouseholdValue}
+                            </span>
+                            <small style={{ color: blueGray100 }}>&nbsp; avg: {hhAvg.MedianHouseholdValue}</small>
+                        </h4>
                     </div>
+                    
                 </div>
             </div>
         );
