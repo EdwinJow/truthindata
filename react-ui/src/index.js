@@ -16,8 +16,8 @@ import {
 ReactGA.initialize('UA-103157646-1');
 
 browserHistory.listen(function (location) {
-    ReactGA.set({ page: location.pathname });
-    ReactGA.pageview(location.pathname);
+    ReactGA.set({ page: window.location.pathname });
+    ReactGA.pageview(window.location.pathname);
 });
 
 render((
@@ -27,7 +27,6 @@ render((
             <Route path="/admin" component={Admin} />
             <Route path="/real-estate-map" component={RealEstateTracker} />
             <Route path="/real-estate-graph" component={RealEstateGraph} />
-            <Route path="/cache/flush"/>
         </Route>
     </Router>
 ), document.getElementById('root'))
