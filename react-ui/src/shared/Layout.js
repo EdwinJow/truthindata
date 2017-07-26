@@ -42,7 +42,7 @@ class Layout extends Component {
                         <Paper id="main-sidebar" zDepth={2} className={this.state.sidebarOpen ? 'open' : ''}>
                             <Menu>
                                 <MenuItem primaryText="Testing" containerElement={<Link to="/testing" />} />
-                                <MenuItem primaryText="Admin" containerElement={<Link to="/admin" />} />
+                                {/* <MenuItem primaryText="Admin" containerElement={<Link to="/admin" />} /> */}
                                 <MenuItem primaryText="Map" containerElement={<Link to="/real-estate-map" />} />
                                 <MenuItem primaryText="Graph" containerElement={<Link to="/real-estate-graph" />} />
                             </Menu>

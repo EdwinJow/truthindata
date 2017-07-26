@@ -15,7 +15,9 @@
   ],
   "dependencies": {
     "axios": "^0.16.1",
+    "body-parser": "^1.17.2",
     "express": "^4.14.1",
+    "google-auth-library": "^0.10.0",
     "mongodb": "^2.2.26",
     "redis": "^2.7.1"
   },
