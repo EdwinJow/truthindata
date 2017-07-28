@@ -35,6 +35,10 @@ class RealEstateGraph extends Component {
             loaderOpen: true,
             slideIndex: 0,
             zipDetailTab: 'metric-graph',
+            limitTo: {
+                zip: null,
+                radius: null
+            },
             regionDetails: {
                 stateName: 'AZ',
                 city: null,
