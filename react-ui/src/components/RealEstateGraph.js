@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
+import Popover from 'material-ui/Popover';
 import SelectField from 'material-ui/SelectField';
 import IconButton from 'material-ui/IconButton';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import FontIcon from 'material-ui/FontIcon';
+import Checkbox from 'material-ui/Checkbox';
 import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
@@ -37,7 +40,9 @@ class RealEstateGraph extends Component {
             zipDetailTab: 'metric-graph',
             limitTo: {
                 zip: null,
-                radius: null
+                radius: null,
+                recastComparedAvg: false,
+                open: false
             },
             regionDetails: {
                 stateName: 'AZ',
@@ -249,6 +254,25 @@ class RealEstateGraph extends Component {
     handleZipDetailTabChange = (value) => {
         this.setState({
             zipDetailTab: value
+        });
+    }
+
+    handleCheckbox = (e, checked) => {
+        this.setState({
+            limitTo: Object.assign({}, this.state.limitTo, {
+                records: checked
+            })
+        });
+    }
+
+    handleLimitToToggle = (event) => {
+        event.preventDefault();
+
+        this.setState({
+            limitTo: Object.assign({}, this.state.limitTo, {
+                open: !this.state.limitTo.open,
+                anchorEl: event.currentTarget
+            })
         });
     }
 
@@ -670,6 +694,27 @@ class RealEstateGraph extends Component {
                     <MenuItem value={"avg"} primaryText={"Average"}/>
                     <MenuItem value={"percent"} primaryText={"% Change"}/>
                 </SelectField>
+                <FlatButton
+                    onTouchTap={this.handleLimitToToggle}
+                    label='Limit Results'
+                />
+                <Popover
+                    open={this.state.limitTo.open}
+                    anchorEl={this.state.limitTo.anchorEl}
+                    anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+                    targetOrigin={{ horizontal: 'left', vertical: 'top' }}
+                    onRequestClose={this.handleLimitToToggle}
+                >
+                    <Menu>
+                        <MenuItem primaryText="Refresh" />
+                        <MenuItem>
+                            <Checkbox
+                                label="Recast compared averages"
+                                onChecked={this.handleCheckbox}
+                            />
+                        </MenuItem>
+                    </Menu>
+                </Popover>
                 <ReactTable
                     key={this.state.tableKey}
                     data={this.state.tableData}
