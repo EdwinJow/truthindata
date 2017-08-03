@@ -341,6 +341,34 @@ app.get('/az-zip-metrics/household', function (req, res) {
     });
 });
 
+app.get('/az-zip-metrics/all-zips', function(req, res){
+    var cacheKey = 'az-zip-metrics-all-zips';
+
+    client.get(cacheKey, function (err, reply) {
+        if (err) throw err;
+
+        if (reply) {         
+            return res.send(reply);
+        }
+
+        MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+            if (err) throw err;
+
+            let collection = db.collection('Zips');
+
+            collection.find({ContainingState: 'AZ'}).toArray(function (err, docs) {
+                if (err) throw err;
+                db.close();
+                res.set('Content-Type', 'application/json');
+
+                let data = JSON.stringify(docs);
+                client.set(cacheKey, data, function (err) { if (err) throw err; });
+                res.send(data);
+            });
+        });
+    });
+});
+
 app.get('/states', function (req, res) {
     getCollectionDocuments('States', req, res);
 });

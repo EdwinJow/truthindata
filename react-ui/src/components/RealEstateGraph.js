@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import Popover from 'material-ui/Popover';
@@ -9,6 +10,8 @@ import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import FontIcon from 'material-ui/FontIcon';
 import Checkbox from 'material-ui/Checkbox';
+import AutoComplete from 'material-ui/AutoComplete';
+
 import ReactTable from 'react-table'
 import _ from 'lodash'
 import 'react-table/react-table.css'
@@ -194,7 +197,8 @@ class RealEstateGraph extends Component {
                 PercentRent2500to3000: 23,
                 PercentRent3000: 23,
                 Year: 2015
-            }
+            },
+            autocompleteZips: []
         };
 
         this.getPriceToRentData = this.getTableMetricData.bind(this);
@@ -204,6 +208,7 @@ class RealEstateGraph extends Component {
     componentDidMount(){
         this.getDateRange();
         this.getTableMetricData();
+        this.getAutocompleteData();
     }
 
     handleDateChange = (value, type) => {
@@ -274,6 +279,24 @@ class RealEstateGraph extends Component {
                 anchorEl: event.currentTarget
             })
         });
+    }
+
+    getAutocompleteData = () => {   
+        axios.get('/az-zip-metrics/all-zips')
+            .then(function (response) {
+                let data = response.data;
+                let zips = [];
+                
+                for (let value of data) {
+                    zips.push(value.Zip.toString());
+                }
+
+                this.setState({ autocompleteZips: zips });
+            }
+            .bind(this))
+            .catch(function (error) {
+                console.log(error);
+            });
     }
 
     getDateRange = () => {
@@ -706,12 +729,17 @@ class RealEstateGraph extends Component {
                     onRequestClose={this.handleLimitToToggle}
                 >
                     <Menu>
-                        <MenuItem primaryText="Refresh" />
                         <MenuItem>
-                            <Checkbox
+                            <AutoComplete
+                                floatingLabelText='Centroid Zip'
+                                dataSource={this.state.autocompleteZips}
+                            />
+                        </MenuItem>
+                        <MenuItem>
+                            {/* <Checkbox
                                 label="Recast compared averages"
                                 onChecked={this.handleCheckbox}
-                            />
+                            /> */}
                         </MenuItem>
                     </Menu>
                 </Popover>
