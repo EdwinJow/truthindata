@@ -9,6 +9,7 @@ import FlatButton from 'material-ui/FlatButton';
 import FontIcon from 'material-ui/FontIcon';
 import Checkbox from 'material-ui/Checkbox';
 import AutoComplete from 'material-ui/AutoComplete';
+import TextField from 'material-ui/TextField';
 
 import ReactTable from 'react-table'
 import _ from 'lodash'
@@ -245,7 +246,7 @@ class RealEstateGraph extends Component {
         this.setState({ aggregator: value});
     }
 
-    handleRadiusChange = (event, index, value) => {
+    handleRadiusChange = (event, value) => {
         this.setState({
              limitTo: Object.assign({}, this.state.limitTo, {
                 radius: value
@@ -831,23 +832,12 @@ class RealEstateGraph extends Component {
                         maxSearchResults={10}
                         onNewRequest={this.handleAutocompleteChange}
                     /> 
-                    <SelectField
+                    <TextField
+                        defaultValue={this.state.limitTo.radius}
                         floatingLabelText='Radius'
-                        value={this.state.limitTo.radius}
+                        type='number'
                         onChange={this.handleRadiusChange}
-                        style={{
-                            marginLeft: '20px',
-                            marginTop: '20px'
-                        }}
-                    >
-                        <MenuItem value={'.25'} primaryText={'.25'} />
-                        <MenuItem value={'.5'} primaryText={'.5'} />
-                        <MenuItem value={'.75'} primaryText={'.75'} />
-                        <MenuItem value={'1'} primaryText={'1'} />
-                        <MenuItem value={'2'} primaryText={'2'} />
-                        <MenuItem value={'5'} primaryText={'5'} />
-                        <MenuItem value={'10'} primaryText={'10'} />
-                    </SelectField>
+                    />
                     <h3>Limited to: {this.state.limitTo.zip} Radius: {this.state.limitTo.radius}</h3>
                     <LimitToMap
                         containerElement={
