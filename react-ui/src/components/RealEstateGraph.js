@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 
-import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
-import Popover from 'material-ui/Popover';
 import SelectField from 'material-ui/SelectField';
 import IconButton from 'material-ui/IconButton';
 import Dialog from 'material-ui/Dialog';
@@ -23,6 +21,24 @@ import SwipeableViews from 'react-swipeable-views';
 import ModalDemographics from './ModalDemographics.js'
 import '../css/real-estate-graph.css'
 
+import { withGoogleMap, GoogleMap, Circle } from "react-google-maps";
+import mapStyles from './googlemaps/styles/grayscale.json'
+
+const LimitToMap = withGoogleMap(props => (
+  <GoogleMap
+    defaultZoom={7}
+    defaultCenter={{ lat: 33.453566, lng: -112.069103 }}
+    defaultOptions={{ styles: mapStyles }}
+  >
+    {/* {props.markers.map((marker, index) => (
+      <Marker
+        {...marker}
+        onRightClick={() => props.onMarkerRightClick(index)}
+      />
+    ))} */}
+  </GoogleMap>
+));
+
 class RealEstateGraph extends Component {
     constructor(props) {
         super(props);
@@ -36,6 +52,7 @@ class RealEstateGraph extends Component {
             modalOpen: false,
             modalBody: 'Beepbepp',
             metricModalOpen: false,
+            mapModalOpen: false,
             aggregator: 'avg',
             tableKey: 1,
             loaderOpen: true,
@@ -228,27 +245,43 @@ class RealEstateGraph extends Component {
         this.setState({ aggregator: value});
     }
 
+    handleRadiusChange = (event, index, value) => {
+        this.setState({
+             limitTo: Object.assign({}, this.state.limitTo, {
+                radius: value
+            })
+        })
+    }
+
     handleMetricChange = (event, index, value) =>{
         this.setState({ metric: value }, function(){
             this.getTableMetricData();
         });
     }
 
-    handleModalOpen = () =>{
-        this.setState({modalOpen: true})
+    handleModalOpen = (type) =>{
+        if(type === 'drilldown'){
+            this.setState({modalOpen: true});
+        }
+        else if(type === 'metric'){
+            this.setState({metricModalOpen: true});
+        }
+        else if(type === 'map'){
+            this.setState({mapModalOpen: true});
+        }
     }; 
 
-    handleModalClose = () =>{
-        this.setState({modalOpen: false})
+    handleModalClose = (type) =>{
+        if(type === 'drilldown'){
+            this.setState({modalOpen: false});
+        }
+        else if(type === 'metric'){
+            this.setState({metricModalOpen: false});
+        }
+        else if(type === 'map'){
+            this.setState({mapModalOpen: false});
+        }
     }; 
-
-    handleMetricModalOpen = () => {
-        this.setState({metricModalOpen: true})
-    }
-
-    handleMetricModalClose = () => {
-        this.setState({metricModalOpen: false})
-    }
 
     handleMetricDefinitionTabChange = (value) => {
         this.setState({
@@ -270,15 +303,12 @@ class RealEstateGraph extends Component {
         });
     }
 
-    handleLimitToToggle = (event) => {
-        event.preventDefault();
-
+    handleAutocompleteChange = (value) => {
         this.setState({
-            limitTo: Object.assign({}, this.state.limitTo, {
-                open: !this.state.limitTo.open,
-                anchorEl: event.currentTarget
+             limitTo: Object.assign({}, this.state.limitTo, {
+                zip: value
             })
-        });
+        })
     }
 
     getAutocompleteData = () => {   
@@ -481,7 +511,7 @@ class RealEstateGraph extends Component {
                 this.setState({ loaderOpen: false });
             });        
             
-            this.handleModalOpen();
+            this.handleModalOpen('drilldown');
         }.bind(this))
         .catch(function (error) {
             console.log(error);
@@ -635,7 +665,7 @@ class RealEstateGraph extends Component {
             <FlatButton
                 label='Cancel'
                 primary={true}
-                onTouchTap={this.handleModalClose}
+                onTouchTap={() => this.handleModalClose('drilldown')}
             />
         ]
 
@@ -643,7 +673,15 @@ class RealEstateGraph extends Component {
             <FlatButton
                 label='Cancel'
                 primary={true}
-                onTouchTap={this.handleMetricModalClose}
+                onTouchTap={() => this.handleModalClose('metric')}
+            />
+        ]
+
+        const mapModalActions = [
+            <FlatButton
+                label='Cancel'
+                primary={true}
+                onTouchTap={() => this.handleModalClose('map')}
             />
         ]
 
@@ -656,7 +694,7 @@ class RealEstateGraph extends Component {
                 </small>
                 <IconButton
                     tooltip="Metric Detail"
-                    onTouchTap={this.handleMetricModalOpen}
+                    onTouchTap={() => this.handleModalOpen('metric')}
                     iconClassName="material-icons"
                     style={{ float: 'left' }}
                     tooltipPosition="bottom-right"
@@ -718,31 +756,9 @@ class RealEstateGraph extends Component {
                     <MenuItem value={"percent"} primaryText={"% Change"}/>
                 </SelectField>
                 <FlatButton
-                    onTouchTap={this.handleLimitToToggle}
+                    onTouchTap={() => this.handleModalOpen('map')}
                     label='Limit Results'
                 />
-                <Popover
-                    open={this.state.limitTo.open}
-                    anchorEl={this.state.limitTo.anchorEl}
-                    anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-                    targetOrigin={{ horizontal: 'left', vertical: 'top' }}
-                    onRequestClose={this.handleLimitToToggle}
-                >
-                    <Menu>
-                        <MenuItem>
-                            <AutoComplete
-                                floatingLabelText='Centroid Zip'
-                                dataSource={this.state.autocompleteZips}
-                            />
-                        </MenuItem>
-                        <MenuItem>
-                            {/* <Checkbox
-                                label="Recast compared averages"
-                                onChecked={this.handleCheckbox}
-                            /> */}
-                        </MenuItem>
-                    </Menu>
-                </Popover>
                 <ReactTable
                     key={this.state.tableKey}
                     data={this.state.tableData}
@@ -766,7 +782,7 @@ class RealEstateGraph extends Component {
                     modal={false}
                     actions={modalActions}
                     open={this.state.modalOpen}
-                    onRequestClose={this.handleModalClose}
+                    onRequestClose={() => this.handleModalClose('drilldown')}
                     contentStyle={{width: '100vw', maxWidth: 'none', height:'100vh', maxHeight: 'none', translateX:'0'}}
                     autoScrollBodyContent={true}
                     className={'zip-detail-modal'}
@@ -801,11 +817,53 @@ class RealEstateGraph extends Component {
                     </Tabs>
                 </Dialog>
                 <Dialog
+                    title={'Restrict Zone'}
+                    modal={false}
+                    actions={mapModalActions}
+                    open={this.state.mapModalOpen}
+                    onRequestClose={() => this.handleModalClose('map')}
+                    contentStyle={{width: '100vw', maxWidth: 'none', height:'100vh', maxHeight: 'none', translateX:'0'}}
+                    autoScrollBodyContent={true}
+                >  
+                    <AutoComplete
+                        floatingLabelText='Centroid Zip'
+                        dataSource={this.state.autocompleteZips}
+                        maxSearchResults={10}
+                        onNewRequest={this.handleAutocompleteChange}
+                    /> 
+                    <SelectField
+                        floatingLabelText='Radius'
+                        value={this.state.limitTo.radius}
+                        onChange={this.handleRadiusChange}
+                        style={{
+                            marginLeft: '20px',
+                            marginTop: '20px'
+                        }}
+                    >
+                        <MenuItem value={'.25'} primaryText={'.25'} />
+                        <MenuItem value={'.5'} primaryText={'.5'} />
+                        <MenuItem value={'.75'} primaryText={'.75'} />
+                        <MenuItem value={'1'} primaryText={'1'} />
+                        <MenuItem value={'2'} primaryText={'2'} />
+                        <MenuItem value={'5'} primaryText={'5'} />
+                        <MenuItem value={'10'} primaryText={'10'} />
+                    </SelectField>
+                    <h3>Limited to: {this.state.limitTo.zip} Radius: {this.state.limitTo.radius}</h3>
+                    <LimitToMap
+                        containerElement={
+                            <div style={{ height: `50vh` }} />
+                        }
+                        mapElement={
+                            <div style={{ height: `100%` }} />
+                        }
+                    />
+                </Dialog>
+                <Dialog
                     title={'Metric Details'}
                     modal={false}
                     actions={metricModalActions}
                     open={this.state.metricModalOpen}
-                    onRequestClose={this.handleMetricModalClose}
+                    onRequestClose={() => this.handleModalClose('metric')}
                     contentStyle={{width: '100%', maxWidth: 'none'}}
                     autoScrollBodyContent={true}
                 >   
