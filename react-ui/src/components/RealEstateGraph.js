@@ -10,6 +10,7 @@ import FontIcon from 'material-ui/FontIcon';
 import Checkbox from 'material-ui/Checkbox';
 import AutoComplete from 'material-ui/AutoComplete';
 import TextField from 'material-ui/TextField';
+import RaisedButton from 'material-ui/RaisedButton';
 
 import ReactTable from 'react-table'
 import _ from 'lodash'
@@ -62,8 +63,7 @@ class RealEstateGraph extends Component {
             limitTo: {
                 zip: null,
                 radius: null,
-                recastComparedAvg: false,
-                open: false
+                recastComparedAvg: false
             },
             regionDetails: {
                 stateName: 'AZ',
@@ -310,6 +310,18 @@ class RealEstateGraph extends Component {
                 zip: value
             })
         })
+    }
+
+    handleRecastAveragesCheckbox = (o, checked) => {
+        this.setState({
+            limitTo: Object.assign({}, this.state.limitTo, {
+                recastComparedAvg: checked
+            })
+        })      
+    }
+
+    handleLimitToSubmit = () => {
+        return;
     }
 
     getAutocompleteData = () => {   
@@ -826,19 +838,27 @@ class RealEstateGraph extends Component {
                     contentStyle={{width: '100vw', maxWidth: 'none', height:'100vh', maxHeight: 'none', translateX:'0'}}
                     autoScrollBodyContent={true}
                 >  
-                    <AutoComplete
-                        floatingLabelText='Centroid Zip'
-                        dataSource={this.state.autocompleteZips}
-                        maxSearchResults={10}
-                        onNewRequest={this.handleAutocompleteChange}
-                    /> 
-                    <TextField
-                        defaultValue={this.state.limitTo.radius}
-                        floatingLabelText='Radius'
-                        type='number'
-                        onChange={this.handleRadiusChange}
-                    />
-                    <h3>Limited to: {this.state.limitTo.zip} Radius: {this.state.limitTo.radius}</h3>
+                    <div style={{marginBottom: 15}}>
+                        <AutoComplete
+                            floatingLabelText='Centroid Zip'
+                            dataSource={this.state.autocompleteZips}
+                            maxSearchResults={10}
+                            onNewRequest={this.handleAutocompleteChange}
+                        /> 
+                        <TextField
+                            value={this.state.limitTo.radius}
+                            floatingLabelText='Radius'
+                            type='number'
+                            onChange={this.handleRadiusChange}
+                            style={{marginLeft: '15px'}}
+                        />
+                        <Checkbox
+                            label="Recast Comparitive Averages"
+                            onCheck={this.handleRecastAveragesCheckbox}
+                            style={{marginLeft: '15px', display: 'inline-block', width: 'auto'}}
+                        />             
+                        <RaisedButton label="Submit" primary={true} onTouchTap={this.handleLimitToSubmit}/>
+                    </div>
                     <LimitToMap
                         containerElement={
                             <div style={{ height: `50vh` }} />
