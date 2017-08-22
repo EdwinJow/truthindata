@@ -61,9 +61,10 @@ class RealEstateGraph extends Component {
             slideIndex: 0,
             zipDetailTab: 'metric-graph',
             limitTo: {
-                zip: null,
-                radius: null,
-                recastComparedAvg: false
+                zip: "",
+                radius: "",
+                recastComparedAvg: false,
+                zipArr: []
             },
             regionDetails: {
                 stateName: 'AZ',
@@ -321,7 +322,37 @@ class RealEstateGraph extends Component {
     }
 
     handleLimitToSubmit = () => {
-        return;
+        this.getGeoNearZips();
+    }
+
+    getGeoNearZips = () => {
+        axios.get('/az-zip-metrics/geo-near',{
+            params: {
+                Zip: this.state.limitTo.zip,
+                Radius: this.state.limitTo.radius
+            }
+        })
+        .then(function (response) {
+            debugger;
+            let data = response.data;
+            let zipArr = [];
+
+            for (let value of data) {
+                zipArr.push(value.Zip);
+            }
+
+            this.setState({
+                limitTo: Object.assign({}, this.state.limitTo, {
+                    zipArr: zipArr
+                })
+            }, function(){
+                this.getTableMetricData();
+            });
+        }
+        .bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
     }
 
     getAutocompleteData = () => {   
@@ -430,7 +461,8 @@ class RealEstateGraph extends Component {
             params: {
                 StartDate: this.state.startDate,
                 EndDate: this.state.endDate,
-                Metric: this.state.metric
+                Metric: this.state.metric,
+                LimitToZips: JSON.stringify(this.state.limitTo.zipArr)
             }
         })
         .then(function (response) {

@@ -93,12 +93,58 @@ app.get('/cache/flush-all', function (req, res) {
     flushRedis();
 });
 
+app.get('/az-zip-metrics/geo-near', function(req, res){
+    let zip = parseInt(req.query.Zip);
+    let radius = parseFloat(req.query.Radius) * 1609.34;
+
+    MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+        if (err) throw err;
+
+        let collection = db.collection('Zips');
+        let centroid;
+
+        collection.findOne({ Zip: zip })
+            .then(function(doc){
+                if(!doc){
+                    return res.send({});
+                } 
+
+                centroid = doc;          
+            })
+            .then(function(){
+                let request = {
+                    loc: {
+                        $near: {
+                            $geometry: {
+                                type: 'Point',
+                                coordinates: [
+                                    centroid.Lng,
+                                    centroid.Lat
+                                ]
+                            },
+                            $minDistance: 0,
+                            $maxDistance: radius
+                        }
+                    }
+                };
+
+                collection.find(request).toArray(function (err, docs) {
+                    if (err) throw err;
+                    db.close();
+                    res.set('Content-Type', 'application/json');
+                    res.send(JSON.stringify(docs));
+                });        
+            });
+    })
+});
+
 app.get('/az-zip-metrics/table', function (req, res) {
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
     const metric = req.query.Metric;
+    const zipArr = JSON.parse(req.query.LimitToZips);
 
-    const cacheKey = 'az-zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric;
+    const cacheKey = 'az-zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric + '-zips: ' + zipArr.join(',');
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -119,6 +165,12 @@ app.get('/az-zip-metrics/table', function (req, res) {
                 if (metric !== 'All') {
                     request.Metric = metric;
                 }
+
+                if(zipArr.length > 0){
+                    request.RegionName = { $in: zipArr }
+                }
+
+                console.log(request);
 
                 collection.find(request).toArray(function (err, docs) {
                     if (err) throw err;
