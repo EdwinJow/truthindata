@@ -59,14 +59,14 @@ app.post('/user/authenticate', function (req, res) {
         });
 });
 
-app.get('/az-zip-metrics/dates', function (req, res) {
-    const cacheKey = 'az-zip-metrics-dates';
+app.get('/zip-metrics/dates', function (req, res) {
+    const cacheKey = 'zip-metrics-dates';
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
         if (reply) {
             res.send(reply);
         } else {
-            flushRedis('az-zip-metrics-dates');
+            flushRedis('zip-metrics-dates');
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
@@ -93,7 +93,7 @@ app.get('/cache/flush-all', function (req, res) {
     flushRedis();
 });
 
-app.get('/az-zip-metrics/geo-near', function(req, res){
+app.get('/zip-metrics/geo-near', function(req, res){
     let zip = parseInt(req.query.Zip);
     let radius = parseFloat(req.query.Radius) * 1609.34;
 
@@ -138,13 +138,14 @@ app.get('/az-zip-metrics/geo-near', function(req, res){
     })
 });
 
-app.get('/az-zip-metrics/table', function (req, res) {
+app.get('/zip-metrics/table', function (req, res) {
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
     const metric = req.query.Metric;
     const zipArr = JSON.parse(req.query.LimitToZips);
+    const state = req.query.State;
 
-    const cacheKey = 'az-zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric + '-zips: ' + zipArr.join(',');
+    const cacheKey = 'zip-metrics-table-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric + '-zips: ' + zipArr.join(',') + '-state:' + state + Math.random();
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -152,14 +153,15 @@ app.get('/az-zip-metrics/table', function (req, res) {
             console.log('metrics from redis')
             res.send(reply);
         } else {
-            flushRedis('az-zip-metrics-table-startdate');
+            flushRedis('zip-metrics-table-startdate');
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
-                let collection = db.collection('ArizonaZipMetrics');
+                let collection = db.collection('ZipMetrics');
 
                 let request = {
-                    Date: { $gte: startDate, $lte: endDate }
+                    Date: { $gte: startDate, $lte: endDate },
+                    State: state
                 }
 
                 if (metric !== 'All') {
@@ -181,7 +183,7 @@ app.get('/az-zip-metrics/table', function (req, res) {
                         records: docs
                     });
 
-                    client.set(cacheKey, data, function (err) { if (err) throw err; });
+                    // client.set(cacheKey, data, function (err) { if (err) throw err; });
                     res.send(data);
                 });
             })
@@ -189,13 +191,13 @@ app.get('/az-zip-metrics/table', function (req, res) {
     });
 });
 
-app.get('/az-zip-metrics/graph', function (req, res) {
+app.get('/zip-metrics/graph', function (req, res) {
     const startDate = req.query.StartDate;
     const endDate = req.query.EndDate;
     const metric = req.query.Metric;
     const zip = req.query.Zip;
 
-    const cacheKey = 'az-zip-metrics-graph-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric + '-zip:' + zip;
+    const cacheKey = 'zip-metrics-graph-startdate:' + startDate + '-enddate:' + endDate + '-metric:' + metric + '-zip:' + zip;
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -203,11 +205,11 @@ app.get('/az-zip-metrics/graph', function (req, res) {
             console.log('metrics from redis')
             res.send(reply);
         } else {
-            flushRedis('az-zip-metrics-graph-startdate');
+            flushRedis('zip-metrics-graph-startdate');
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
-                let collection = db.collection('ArizonaZipMetrics');
+                let collection = db.collection('ZipMetrics');
 
                 let request = {
                     $and: [
@@ -244,8 +246,9 @@ app.get('/az-zip-metrics/graph', function (req, res) {
     });
 });
 
-app.get('/az-zip-metrics/demographics-all', function (req, res) {
-    const cacheKey = 'az-zip-metrics-demographics-all';
+app.get('/zip-metrics/demographics-all', function (req, res) {
+    const state = req.query.State;
+    const cacheKey = 'zip-metrics-demographics-all-state-' + state;
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -257,9 +260,13 @@ app.get('/az-zip-metrics/demographics-all', function (req, res) {
         MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
             if (err) throw err;
 
-            let collection = db.collection('ArizonaZipDemographics');
+            let collection = db.collection('ZipDemographics');
 
-            collection.find({}).toArray(function (err, docs) {
+            let request = {
+                STAbv: state
+            }
+
+            collection.find(request).toArray(function (err, docs) {
                 if (err) throw err;
                 db.close();
                 res.set('Content-Type', 'application/json');
@@ -278,8 +285,9 @@ app.get('/az-zip-metrics/demographics-all', function (req, res) {
     });
 });
 
-app.get('/az-zip-metrics/household-all', function (req, res) {
-    const cacheKey = 'az-zip-metrics-household-all';
+app.get('/zip-metrics/household-all', function (req, res) {
+    const state = req.query.State;
+    const cacheKey = 'zip-metrics-household-all-state-' + state;
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -290,9 +298,13 @@ app.get('/az-zip-metrics/household-all', function (req, res) {
             MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
                 if (err) throw err;
 
-                let collection = db.collection('ArizonaZipHousehold');
+                let collection = db.collection('ZipHousehold');
 
-                collection.find({}).toArray(function (err, docs) {
+                let request = {
+                    STAbv: state
+                }
+
+                collection.find(request).toArray(function (err, docs) {
                     if (err) throw err;
                     db.close();
                     res.set('Content-Type', 'application/json');
@@ -311,14 +323,15 @@ app.get('/az-zip-metrics/household-all', function (req, res) {
     });
 });
 
-app.get('/az-zip-metrics/demographics', function (req, res) {
+app.get('/zip-metrics/demographics', function (req, res) {
     const zip = parseInt(req.query.Zip);
+    const state = req.query.State;
 
     if (zip === null) {
         res.send(null);
     }
 
-    client.get('az-zip-metrics-demographics-all', function (err, reply) {
+    client.get('zip-metrics-demographics-all-state-' + state, function (err, reply) {
         if (err) throw err;
 
         if (reply) {
@@ -330,10 +343,11 @@ app.get('/az-zip-metrics/demographics', function (req, res) {
         MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
             if (err) throw err;
 
-            let collection = db.collection('ArizonaZipDemographics');
+            let collection = db.collection('ZipDemographics');
 
             let request = {
-                Zip: zip
+                Zip: zip,
+
             }
 
             collection.findOne(request, function (err, doc) {
@@ -352,14 +366,16 @@ app.get('/az-zip-metrics/demographics', function (req, res) {
     });
 });
 
-app.get('/az-zip-metrics/household', function (req, res) {
+app.get('/zip-metrics/household', function (req, res) {
     const zip = parseInt(req.query.Zip);
+    const state = req.query.State;
+    const cacheKey = 'zip-metrics-household-all-state-' + state;
 
     if (zip === null) {
         res.send(null);
     }
 
-    client.get('az-zip-metrics-household-all', function (err, reply) {
+    client.get(cacheKey, function (err, reply) {
         if (err) throw err;
 
         if (reply) {
@@ -371,7 +387,7 @@ app.get('/az-zip-metrics/household', function (req, res) {
         MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
             if (err) throw err;
 
-            let collection = db.collection('ArizonaZipHousehold');
+            let collection = db.collection('ZipHousehold');
 
             let request = {
                 Zip: zip
@@ -393,8 +409,9 @@ app.get('/az-zip-metrics/household', function (req, res) {
     });
 });
 
-app.get('/az-zip-metrics/all-zips', function(req, res){
-    var cacheKey = 'az-zip-metrics-all-zips';
+app.get('/zip-metrics/all-zips', function(req, res){
+    var cacheKey = 'zip-metrics-all-zips';
+    const state = req.query.State;
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;
@@ -408,7 +425,11 @@ app.get('/az-zip-metrics/all-zips', function(req, res){
 
             let collection = db.collection('Zips');
 
-            collection.find({ContainingState: 'AZ'}).toArray(function (err, docs) {
+            let request = {
+                ContainingState: state 
+            }
+
+            collection.find(request).toArray(function (err, docs) {
                 if (err) throw err;
                 db.close();
                 res.set('Content-Type', 'application/json');

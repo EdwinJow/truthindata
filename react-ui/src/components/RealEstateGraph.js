@@ -59,6 +59,7 @@ class RealEstateGraph extends Component {
             tableKey: 1,
             loaderOpen: true,
             slideIndex: 0,
+            stateSelect: 'AZ',
             zipDetailTab: 'metric-graph',
             limitTo: {
                 zip: "",
@@ -243,6 +244,14 @@ class RealEstateGraph extends Component {
         }     
     };
 
+    handleStateSelectChange = (event, index, value) => {
+        this.setState({
+            stateSelect: value 
+        }, function(){
+            this.getTableMetricData();
+        });
+    }
+
     handleAggregateChange = (event, index, value) => {
         this.setState({ aggregator: value});
     }
@@ -326,7 +335,7 @@ class RealEstateGraph extends Component {
     }
 
     getGeoNearZips = () => {
-        axios.get('/az-zip-metrics/geo-near',{
+        axios.get('/zip-metrics/geo-near',{
             params: {
                 Zip: this.state.limitTo.zip,
                 Radius: this.state.limitTo.radius
@@ -356,7 +365,7 @@ class RealEstateGraph extends Component {
     }
 
     getAutocompleteData = () => {   
-        axios.get('/az-zip-metrics/all-zips')
+        axios.get('/zip-metrics/all-zips')
             .then(function (response) {
                 let data = response.data;
                 let zips = [];
@@ -374,7 +383,7 @@ class RealEstateGraph extends Component {
     }
 
     getDateRange = () => {
-        axios.get('/az-zip-metrics/dates')
+        axios.get('/zip-metrics/dates')
         .then(function (response) {
             let data = response.data;
             let len = data.dates.length;
@@ -393,7 +402,11 @@ class RealEstateGraph extends Component {
     }
 
     getAllZipDemographics = () => {
-        axios.get('/az-zip-metrics/demographics-all')
+        axios.get('/zip-metrics/demographics-all',{
+            params: {
+                State: this.state.stateSelect 
+            }
+        })
         .then(function (response) {
             let data = response.data;
             this.setState({
@@ -407,7 +420,11 @@ class RealEstateGraph extends Component {
     }
 
     getAllZipHouseholds = () => {
-        axios.get('/az-zip-metrics/household-all')
+        axios.get('/zip-metrics/household-all',{
+            params: {
+                State: this.state.stateSelect 
+            }
+        })
         .then(function (response) {
             let data = response.data;
             this.setState({
@@ -421,9 +438,10 @@ class RealEstateGraph extends Component {
     }
 
     getZipDemographics = () => {
-        axios.get('/az-zip-metrics/demographics',{
+        axios.get('/zip-metrics/demographics',{
             params: {
-                Zip: this.state.regionDetails.zip
+                Zip: this.state.regionDetails.zip,
+                State: this.state.stateSelect 
             }
         })
         .then(function (response) {
@@ -439,7 +457,7 @@ class RealEstateGraph extends Component {
     }
 
     getZipHousehold = () => {
-        axios.get('/az-zip-metrics/household',{
+        axios.get('/zip-metrics/household',{
             params: {
                 Zip: this.state.regionDetails.zip
             }
@@ -457,12 +475,13 @@ class RealEstateGraph extends Component {
 
     getTableMetricData = () =>{
         this.setState({ loaderOpen: true });
-        axios.get('/az-zip-metrics/table', {
+        axios.get('/zip-metrics/table', {
             params: {
                 StartDate: this.state.startDate,
                 EndDate: this.state.endDate,
                 Metric: this.state.metric,
-                LimitToZips: JSON.stringify(this.state.limitTo.zipArr)
+                LimitToZips: JSON.stringify(this.state.limitTo.zipArr),
+                State: this.state.stateSelect
             }
         })
         .then(function (response) {
@@ -498,7 +517,7 @@ class RealEstateGraph extends Component {
             this.getZipHousehold();
         });
 
-        axios.get('/az-zip-metrics/graph', {
+        axios.get('/zip-metrics/graph', {
             params: {
                 StartDate: this.state.startDate,
                 EndDate: this.state.endDate,
@@ -747,6 +766,17 @@ class RealEstateGraph extends Component {
                     select_all
                 </IconButton>
                 <SelectField
+                    floatingLabelText='State Select'
+                    value={this.state.stateSelect}
+                    onChange={this.handleStateSelectChange}
+                    style={{
+                        marginLeft: '15px'
+                        }}>
+                    <MenuItem value={'AZ'} primaryText='AZ' />
+                    <MenuItem value={'CA'} primaryText='CA' />              
+                    <MenuItem value={'PA'} primaryText='PA' />
+                </SelectField>
+                <SelectField
                     floatingLabelText='Metric Select'
                     value={this.state.metric}
                     onChange={this.handleMetricChange}
@@ -759,7 +789,6 @@ class RealEstateGraph extends Component {
                     <MenuItem value={'ZHVR'} primaryText='Home Value Rental Index' />
                     <MenuItem value={'IncreasingValues'} primaryText='Increasing Value' />
                     <MenuItem value={'PriceToRent'} primaryText='Price To Rent' />
-                    <MenuItem value={'Turnover'} primaryText='Turnover' />
                 </SelectField>
                 <SelectField
                     floatingLabelText='Start Date'
@@ -800,16 +829,21 @@ class RealEstateGraph extends Component {
                     <MenuItem value={"avg"} primaryText={"Average"}/>
                     <MenuItem value={"percent"} primaryText={"% Change"}/>
                 </SelectField>
-                <FlatButton
+                {/* <FlatButton
                     onTouchTap={() => this.handleModalOpen('map')}
                     label='Limit Results'
-                />
+                /> */}
                 <ReactTable
                     key={this.state.tableKey}
                     data={this.state.tableData}
                     columns={columns}
                     pivotBy={['RegionName']}
                     filterable={true}
+                    defaultSorted={[
+                        {
+                            id: 'Date'
+                        }
+                    ]}
                     getTdProps={(state, rowInfo, column, instance) => {
                         return {
                             onClick: e => console.log('Click', {
@@ -917,7 +951,6 @@ class RealEstateGraph extends Component {
                     <Tab label="Home Value Rental Index" value={1} />
                     <Tab label="Increasing Value" value={2} />
                     <Tab label="Price To Rent" value={3} />
-                    <Tab label="Turnover" value={4} />
                 </Tabs>
                     <SwipeableViews
                         index={this.state.slideIndex}
@@ -938,10 +971,6 @@ class RealEstateGraph extends Component {
                     <div>
                         <h2>PriceToRent</h2>
                         This ratio is first calculated at the individual home level, where the estimated home value is divided by 12 times its estimated monthly rent price. The the median of all home-level price-to-rent ratios for a given region is then calculated.
-                    </div>
-                    <div>
-                        <h2>Turnover</h2>
-                        The percentage of all homes in a given area that sold in the past 12 months.
                     </div>
                     </SwipeableViews>
                 </Dialog>          
