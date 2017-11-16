@@ -40,6 +40,10 @@
   top: 0 !important;
 }
 
+.limit-btn-active button {
+  background-color: #8bc34a !important;
+}
+
 .rt-td.rt-expandable.rt-pivot {
   overflow: visible;
 }

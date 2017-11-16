@@ -246,6 +246,151 @@ app.get('/zip-metrics/graph', function (req, res) {
     });
 });
 
+app.get('/zip-metrics/recast-household-averages', function(req,res){
+    const zipArr = JSON.parse(req.query.LimitToZips);
+
+    if(!zipArr.length > 0){
+        res.send('');
+    } 
+
+    let request = [
+        {
+            $match: { Zip: { $in: zipArr } },
+        },
+        {
+            $group: {
+                _id: '0',
+                TotalHousingUnits: { $avg: '$TotalHousingUnits' },
+                PercentHousingUnitsOccupied: { $avg: '$PercentHousingUnitsOccupied' },
+                PercentHousingUnitsVacant: { $avg: '$PercentHousingUnitsVacant' },
+                PercentOwnerOccupied: { $avg: '$PercentOwnerOccupied' },
+                PercentRenterOccupied: { $avg: '$PercentRenterOccupied' },
+                PercentValue100k: { $avg: '$PercentValue100k' },
+                PercentValue100k200k: { $avg: '$PercentValue100k200k' },
+                PercentValue200k300k: { $avg: '$PercentValue200k300k' },
+                PercentValue300k500k: { $avg: '$PercentValue300k500k' },
+                PercentValue500k1m: { $avg: '$PercentValue500k1m' },
+                PercentValue1m: { $avg: '$PercentValue1m' },
+                MedianHouseholdValue: { $avg: '$MedianHouseholdValue' },
+                TotalRentalHouseholds: { $avg: '$TotalRentalHouseholds' },
+                PercentRent500: { $avg: '$PercentRent500' },
+                PercentRent500to1000: { $avg: '$PercentRent500to1000' },
+                PercentRent1500to2000: { $avg: '$PercentRent1500to2000' },
+                PercentRent2000to2500: { $avg: '$PercentRent2000to2500' },
+                PercentRent2500to3000: { $avg: '$PercentRent2500to3000' },
+                PercentRent3000: { $avg: '$PercentRent3000' }
+            }
+        }
+    ];
+
+    MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+        if (err) throw err;
+
+        let collection = db.collection('ZipHousehold');
+
+        collection.aggregate(request).toArray(function (err, docs) {
+            if (err) throw err;
+            db.close();
+    
+            console.log('recast household averages');
+    
+            res.set('Content-Type', 'application/json');
+    
+            let data = JSON.stringify({
+                averages: docs[0]
+            });
+    
+            res.send(data);
+        });
+    })
+});
+
+app.get('/zip-metrics/recast-demographic-averages', function(req,res){
+    const zipArr = JSON.parse(req.query.LimitToZips);
+
+    if(!zipArr.length > 0){
+        res.send('');
+    } 
+
+    let request = [
+        {
+            $match: { Zip: { $in: zipArr } },
+        },
+        {
+            $group: {
+                _id: '0',
+                PercentInLaborForce: { $avg: '$PercentInLaborForce' },
+                PercentUnemployed: { $avg: '$PercentUnemployed' },
+                PercentManagementJobs: { $avg: '$PercentManagementJobs' },
+                PercentServiceJobs: { $avg: '$PercentServiceJobs' },
+                PercentSalesOfficeJobs: { $avg: '$PercentSalesOfficeJobs' },
+                PercentConstructionJobs: { $avg: '$PercentConstructionJobs' },
+                PercentManufacturingTransportationJobs: { $avg: '$PercentManufacturingTransportationJobs' },
+                TotalHouseholds: { $avg: '$TotalHouseholds' },
+                PercentHouseholdIncome25k: { $avg: '$PercentHouseholdIncome25k' },
+                PercentHouseholdIncome25k50k: { $avg: '$PercentHouseholdIncome25k50k' },
+                PercentHouseholdIncome50k75k: { $avg: '$PercentHouseholdIncome50k75k' },
+                PercentHouseholdIncome75k100k: { $avg: '$PercentHouseholdIncome75k100k' },
+                PercentHouseholdIncome100k150k: { $avg: '$PercentHouseholdIncome100k150k' },
+                PercentHouseholdIncome150k200k: { $avg: '$PercentHouseholdIncome150k200k' },
+                PercentHouseholdIncome200k: { $avg: '$PercentHouseholdIncome200k' },
+                TotalHouseholdMedianIncome: { $avg: '$TotalHouseholdMedianIncome' },
+                TotalHouseholdMeanIncome: { $avg: '$TotalHouseholdMeanIncome' },
+                PerCapitaIncome: { $avg: '$PerCapitaIncome' },
+                PercentHealthInsured: { $avg: '$PercentHealthInsured' },
+                PercentNonHealthInsured: { $avg: '$PercentNonHealthInsured' },
+                PercentFamiliesBelowPovertyLevel: { $avg: '$PercentFamiliesBelowPovertyLevel' },
+                PercentPeopleBelowPovertyLevel: { $avg: '$PercentPeopleBelowPovertyLevel' },
+                TotalPop18to24: { $avg: '$TotalPop18to24' },
+                Total18to24LessThanHighSchool: { $avg: '$Total18to24LessThanHighSchool' },
+                Percent18to24LessThanHighSchool: { $avg: '$Percent18to24LessThanHighSchool' },
+                Total18to24HighSchoolGraduate: { $avg: '$Total18to24HighSchoolGraduate' },
+                Percent18to24HighSchoolGraduate: { $avg: '$Percent18to24HighSchoolGraduate' },
+                Total18to24SomeCollegeOrAssociates: { $avg: '$Total18to24SomeCollegeOrAssociates' },
+                Percent18to24SomeCollegeOrAssociates: { $avg: '$Percent18to24SomeCollegeOrAssociates' },
+                Total18to24BachelorsOrHigher: { $avg: '$Total18to24BachelorsOrHigher' },
+                Percent18to24BachelorsOrHigher: { $avg: '$Percent18to24BachelorsOrHigher' },
+                TotalPop25Older: { $avg: '$TotalPop25Older' },
+                TotalPop25OlderLessThanHighSchool: { $avg: '$TotalPop25OlderLessThanHighSchool' },
+                PercentPop25OlderLessThanHighSchool: { $avg: '$PercentPop25OlderLessThanHighSchool' },
+                TotalPop25OlderHighSchoolGraduate: { $avg: '$TotalPop25OlderHighSchoolGraduate' },
+                PercentPop25OlderHighschoolGraduate: { $avg: '$PercentPop25OlderHighschoolGraduate' },
+                TotalPop25OlderSomeCollege: { $avg: '$TotalPop25OlderSomeCollege' },
+                PercentPop25OlderSomeCollege: { $avg: '$PercentPop25OlderSomeCollege' },
+                TotalPop25OlderAssociates: { $avg: '$TotalPop25OlderAssociates' },
+                PercentPop25OlderAssociates: { $avg: '$PercentPop25OlderAssociates' },
+                TotalPop25OlderBachelors: { $avg: '$TotalPop25OlderBachelors' },
+                PercentPop25OlderBachelors: { $avg: '$PercentPop25OlderBachelors' },
+                TotalPop25OlderGraduates: { $avg: '$TotalPop25OlderGraduates' },
+                PercentPop25OlderGraduates: { $avg: '$PercentPop25OlderGraduates' },
+                TotalPercentHighschoolOrHigher: { $avg: '$TotalPercentHighschoolOrHigher' },
+                TotalPercentBachelorsOrHigher: { $avg: '$TotalPercentBachelorsOrHigher' },
+            }
+        }
+    ];
+
+    MongoClient.connect(process.env.MONGODB_URI, function (err, db) {
+        if (err) throw err;
+
+        let collection = db.collection('ZipDemographics');
+
+        collection.aggregate(request).toArray(function (err, docs) {
+            if (err) throw err;
+            db.close();
+    
+            console.log('recast demographic averages');
+    
+            res.set('Content-Type', 'application/json');
+    
+            let data = JSON.stringify({
+                averages: docs[0]
+            });
+    
+            res.send(data);
+        });
+    })
+});
+
 app.get('/zip-metrics/demographics-all', function (req, res) {
     const state = req.query.State;
     const cacheKey = 'zip-metrics-demographics-all-state-' + state;
@@ -264,7 +409,7 @@ app.get('/zip-metrics/demographics-all', function (req, res) {
 
             let request = {
                 STAbv: state
-            }
+            };
 
             collection.find(request).toArray(function (err, docs) {
                 if (err) throw err;
@@ -410,8 +555,8 @@ app.get('/zip-metrics/household', function (req, res) {
 });
 
 app.get('/zip-metrics/all-zips', function(req, res){
-    var cacheKey = 'zip-metrics-all-zips';
     const state = req.query.State;
+    var cacheKey = 'zip-metrics-all-zips-state-' + state;
 
     client.get(cacheKey, function (err, reply) {
         if (err) throw err;

@@ -23,22 +23,22 @@ import SwipeableViews from 'react-swipeable-views';
 import ModalDemographics from './ModalDemographics.js'
 import '../css/real-estate-graph.css'
 
-import { withGoogleMap, GoogleMap, Circle } from "react-google-maps";
+import { withGoogleMap, GoogleMap, Marker, Circle } from "react-google-maps";
 import mapStyles from './googlemaps/styles/grayscale.json'
 
 const LimitToMap = withGoogleMap(props => (
-  <GoogleMap
-    defaultZoom={7}
-    defaultCenter={{ lat: 33.453566, lng: -112.069103 }}
-    defaultOptions={{ styles: mapStyles }}
-  >
-    {/* {props.markers.map((marker, index) => (
-      <Marker
-        {...marker}
-        onRightClick={() => props.onMarkerRightClick(index)}
-      />
-    ))} */}
-  </GoogleMap>
+    <GoogleMap
+        defaultZoom={7}
+        defaultCenter={{ lat: 33.453566, lng: -112.069103 }}
+        defaultOptions={{ styles: mapStyles }}
+    >
+        {props.markers.map((marker, index) => (
+            <Marker
+                {...marker}
+                onRightClick={() => props.onMarkerRightClick(index)}
+            />
+        ))}
+    </GoogleMap>
 ));
 
 class RealEstateGraph extends Component {
@@ -64,7 +64,6 @@ class RealEstateGraph extends Component {
             limitTo: {
                 zip: "",
                 radius: "",
-                recastComparedAvg: false,
                 zipArr: []
             },
             regionDetails: {
@@ -218,7 +217,8 @@ class RealEstateGraph extends Component {
                 PercentRent3000: 23,
                 Year: 2015
             },
-            autocompleteZips: []
+            autocompleteZips: [],
+            markers: []
         };
 
         this.getPriceToRentData = this.getTableMetricData.bind(this);
@@ -248,20 +248,13 @@ class RealEstateGraph extends Component {
         this.setState({
             stateSelect: value 
         }, function(){
+            this.getAutocompleteData();
             this.getTableMetricData();
         });
     }
 
     handleAggregateChange = (event, index, value) => {
         this.setState({ aggregator: value});
-    }
-
-    handleRadiusChange = (event, value) => {
-        this.setState({
-             limitTo: Object.assign({}, this.state.limitTo, {
-                radius: value
-            })
-        })
     }
 
     handleMetricChange = (event, index, value) =>{
@@ -305,11 +298,11 @@ class RealEstateGraph extends Component {
             zipDetailTab: value
         });
     }
-
-    handleCheckbox = (e, checked) => {
+ 
+    handleRadiusChange = (event, value) => {
         this.setState({
             limitTo: Object.assign({}, this.state.limitTo, {
-                records: checked
+                radius: value
             })
         });
     }
@@ -319,19 +312,20 @@ class RealEstateGraph extends Component {
              limitTo: Object.assign({}, this.state.limitTo, {
                 zip: value
             })
-        })
+        });
     }
 
-    handleRecastAveragesCheckbox = (o, checked) => {
+    clearLimitTo = () => {
+        this.setState({ markers: [] });
         this.setState({
             limitTo: Object.assign({}, this.state.limitTo, {
-                recastComparedAvg: checked
-            })
-        })      
-    }
-
-    handleLimitToSubmit = () => {
-        this.getGeoNearZips();
+               zip: "",
+               zipArr: [],
+               radius: ""
+           })
+       }, function(){
+           this.getTableMetricData();
+       });
     }
 
     getGeoNearZips = () => {
@@ -350,11 +344,22 @@ class RealEstateGraph extends Component {
                 zipArr.push(value.Zip);
             }
 
+            let markers =  data.map(obj => (
+                {
+                    position: {
+                        lat: obj.Lat,
+                        lng: obj.Lng
+                    },
+                    key: obj.Zip,
+                    label: obj.Zip.toString(),
+                }));
+
             this.setState({
                 limitTo: Object.assign({}, this.state.limitTo, {
                     zipArr: zipArr
-                })
-            }, function(){
+                }),
+                markers: markers
+            }, function(){           
                 this.getTableMetricData();
             });
         }
@@ -365,7 +370,11 @@ class RealEstateGraph extends Component {
     }
 
     getAutocompleteData = () => {   
-        axios.get('/zip-metrics/all-zips')
+        axios.get('/zip-metrics/all-zips',{
+                params: {
+                    State: this.state.stateSelect
+                }
+            })
             .then(function (response) {
                 let data = response.data;
                 let zips = [];
@@ -380,6 +389,42 @@ class RealEstateGraph extends Component {
             .catch(function (error) {
                 console.log(error);
             });
+    }
+
+    getLimitedDemographicAverages = () => {
+        axios.get('/zip-metrics/recast-demographic-averages',{
+            params: {
+                LimitToZips: JSON.stringify(this.state.limitTo.zipArr)
+            }
+        })
+        .then(function (response) {
+            let data = response.data.averages;
+            if(data !== {}){
+                this.setState({ demographicAverages: data });
+            }
+        }
+        .bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
+
+    getLimitedHouseholdAverages = () => {
+        axios.get('/zip-metrics/recast-household-averages',{
+            params: {
+                LimitToZips: JSON.stringify(this.state.limitTo.zipArr)
+            }
+        })
+        .then(function (response) {
+            let data = response.data.averages;
+            if(data !== {}){
+                this.setState({ householdAverages: data });
+            }
+        }
+        .bind(this))
+        .catch(function (error) {
+            console.log(error);
+        });
     }
 
     getDateRange = () => {
@@ -493,8 +538,13 @@ class RealEstateGraph extends Component {
                     loaderOpen: false
                 })
             );
-            this.getAllZipDemographics();
-            this.getAllZipHouseholds();
+            if(this.state.limitTo.zipArr.length > 0 ){                
+                this.getLimitedDemographicAverages();
+                this.getLimitedHouseholdAverages();
+            } else{
+                this.getAllZipDemographics();
+                this.getAllZipHouseholds();
+            }
         }.bind(this))
         .catch(function (error) {
             console.log(error);
@@ -529,7 +579,8 @@ class RealEstateGraph extends Component {
             let data = response.data.records;
             let mean = _.meanBy(data, function(o) { return o.Value; });
             let dataLen = data.length;
-
+            debugger;
+            
             if (this.state.metric !== 'All') {
                 let tableData = this.state.tableData;
                 let tableDataLen = tableData.length;
@@ -743,7 +794,7 @@ class RealEstateGraph extends Component {
 
         const mapModalActions = [
             <FlatButton
-                label='Cancel'
+                label='Close'
                 primary={true}
                 onTouchTap={() => this.handleModalClose('map')}
             />
@@ -769,9 +820,13 @@ class RealEstateGraph extends Component {
                     floatingLabelText='State Select'
                     value={this.state.stateSelect}
                     onChange={this.handleStateSelectChange}
-                    style={{
-                        marginLeft: '15px'
-                        }}>
+                    style={
+                        {
+                            marginLeft: '15px',
+                            width: '100px'
+                        }
+                    }
+                    autoWidth={true}>
                     <MenuItem value={'AZ'} primaryText='AZ' />
                     <MenuItem value={'CA'} primaryText='CA' />              
                     <MenuItem value={'PA'} primaryText='PA' />
@@ -794,7 +849,8 @@ class RealEstateGraph extends Component {
                     floatingLabelText='Start Date'
                     value={this.state.startDate}
                     style={{
-                        marginLeft: '20px'
+                        marginLeft: '20px',
+                        width: '150px'
                     }}
                 >
                     {this.state.dateRange.map((obj, index) => (
@@ -808,7 +864,8 @@ class RealEstateGraph extends Component {
                     floatingLabelText='End Date'
                     value={this.state.endDate}
                     style={{
-                        marginLeft: '20px'
+                        marginLeft: '20px',
+                        width: '150px'
                     }}
                 >
                     {this.state.dateRange.map((obj, index) => (
@@ -823,16 +880,23 @@ class RealEstateGraph extends Component {
                     value={this.state.aggregator}
                     onChange={this.handleAggregateChange}
                     style={{
-                        marginLeft: '20px'
+                        marginLeft: '20px',
+                        width: '180px'
                     }}
                 >
                     <MenuItem value={"avg"} primaryText={"Average"}/>
                     <MenuItem value={"percent"} primaryText={"% Change"}/>
                 </SelectField>
-                {/* <FlatButton
+                <RaisedButton
                     onTouchTap={() => this.handleModalOpen('map')}
-                    label='Limit Results'
-                /> */}
+                    className={(this.state.limitTo.zipArr.length > 0 ? 'limit-btn-active': '')}
+                    label={(this.state.limitTo.zipArr.length > 0 ? 'FILTER ACTIVE': 'Limit Results')}
+                    style={{
+                        top: '-20px',
+                        position: 'relative',
+                        marginLeft: '20px'
+                    }}
+                />
                 <ReactTable
                     key={this.state.tableKey}
                     data={this.state.tableData}
@@ -881,7 +945,7 @@ class RealEstateGraph extends Component {
                                     <Tooltip />
                                     <Legend />
                                     <Line type='monotone' dataKey='Value' stroke='#8884d8'/>
-                                    <Line type='monotone' dataKey='Avg' name={this.state.regionDetails.stateName + ' Avg'} stroke='#FF9800'/>
+                                    <Line type='monotone' dataKey='Avg' name={(this.state.limitTo.zipArr.length > 0 ? 'Active Radius Average' : this.state.regionDetails.stateName + ' Avg')} stroke='#FF9800'/>
                                 </LineChart>
                             </ResponsiveContainer>
                         </Tab>
@@ -905,25 +969,45 @@ class RealEstateGraph extends Component {
                     autoScrollBodyContent={true}
                 >  
                     <div style={{marginBottom: 15}}>
+
                         <AutoComplete
                             floatingLabelText='Centroid Zip'
                             dataSource={this.state.autocompleteZips}
                             maxSearchResults={10}
                             onNewRequest={this.handleAutocompleteChange}
+                            searchText={this.state.limitTo.zip}
                         /> 
+
                         <TextField
                             value={this.state.limitTo.radius}
                             floatingLabelText='Radius'
                             type='number'
                             onChange={this.handleRadiusChange}
                             style={{marginLeft: '15px'}}
-                        />
-                        <Checkbox
-                            label="Recast Comparitive Averages"
-                            onCheck={this.handleRecastAveragesCheckbox}
-                            style={{marginLeft: '15px', display: 'inline-block', width: 'auto'}}
-                        />             
-                        <RaisedButton label="Submit" primary={true} onTouchTap={this.handleLimitToSubmit}/>
+                        />   
+
+                        <RaisedButton
+                            onTouchTap={this.getGeoNearZips}
+                            label={'Submit'}
+                            primary={true}
+                            disabled={(this.state.limitTo.zip && this.state.limitTo.radius ? false : true)}
+                            style={{
+                                position: 'relative',
+                                marginLeft: '20px',
+                                backgroundColor: blue500
+                            }}
+                        />  
+
+                        <RaisedButton
+                            onTouchTap={this.clearLimitTo}
+                            label={'Clear Limits'}
+                            secondary={true}
+                            disabled={(this.state.limitTo.zip && this.state.limitTo.radius ? false : true)}
+                            style={{
+                                position: 'relative',
+                                marginLeft: '20px'
+                            }}
+                        />   
                     </div>
                     <LimitToMap
                         containerElement={
@@ -932,6 +1016,7 @@ class RealEstateGraph extends Component {
                         mapElement={
                             <div style={{ height: `100%` }} />
                         }
+                        markers={this.state.markers}
                     />
                 </Dialog>
                 <Dialog
