@@ -28,6 +28,7 @@
     "react-table": "^6.4.0",
     "react-tap-event-plugin": "^2.0.1",
     "react-test-renderer": "^15.6.1",
+    "react-vis": "^1.9.3",
     "recharts": "^1.0.0-alpha.1",
     "sinon": "^2.3.4",
     "victory": "^0.21.0"
